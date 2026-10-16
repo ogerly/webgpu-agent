@@ -21,9 +21,10 @@ Dazu: UI-Konzept (3-Panel) + Token-Management. Ziel: klare Optionen, offene Frag
 ## KERN — AAMS-Session-Gedächtnis (Herzstück, WH-Kandidat #1)
 
 > **Der wichtigste Kern:** AAMS ist das Fundament einer Session. Der Agent **dokumentiert sich
-> selbst** — jeder Heartbeat + jeder Loop-Schritt schreibt Entscheidungen, Schritte und erledigte
-> Schritte sauber + sparsam in die AAMS-B-Schichten. Der Prozess bleibt lückenlos nachvollziehbar
-> für die Dauer der Session/Aufgabe. **Das Gedächtnis IST der Prozess.**
+> selbst** — Arbeit + Entscheidungen landen lückenlos in den AAMS-B-Schichten, für die Dauer der
+> Session/Aufgabe. **Das Gedächtnis IST der Prozess.**
+> **Status: explorativ** — exakte Mechanik wird in der Praxis verifiziert („wir werden sehen, wie
+> sich das in der Praxis verhält").
 
 ### AAMS-B-Schichten (spiegeln AAMS-A)
 | AAMS-A (Dev) | AAMS-B (Agent) | hält |
@@ -33,34 +34,28 @@ Dazu: UI-Konzept (3-Panel) + Token-Management. Ziel: klare Optionen, offene Frag
 | MEMORY (LTM) | `memory` | Langzeit-Kontext: Entscheidungen, Fakten |
 | WHITEPAPER | `knowledge` | stabile Wahrheit (Regeln) |
 
-### Wie wird das Gedächtnis erstellt? (inkrementell — nicht vorgekocht)
-- **Session-Start:** frische AAMS-B-Instanz (leere `tasks`/`auditLog`/`memory`/`knowledge`) + Session-ID → IndexedDB.
-- **Jeder Loop-Schritt** schreibt: Task-Status+Ergebnis→`tasks` · Entscheidung+Begründung→`memory` · was/wann/Outcome→`auditLog` · stabile Fakten→`knowledge`.
-- **Jeder Heartbeat** schreibt: Status-Checkpoint→`auditLog` · ausstehenden Context→`memory` (Flushing).
+### Mechanik (revidiert nach Feedback)
+- **Heartbeat** = **mechanischer Trigger** — läuft zyklisch, prüft Zustand/VRAM, **löst Aktionen aus**
+  (z. B. Loop). Dokumentiert **nicht** selbst.
+- **Loop** = **mechanischer Arbeitszyklus** — läuft, wenn eingestellt (gescheduled / schrittweise /
+  ereignisgesteuert). Führt Sub-Tasks aus; Ergebnisse + Zustand landen in AAMS-B.
+- **Tokenwächter** = „stumper" Heartbeat (einfach, mechanisch) — das **Dokumentations-Sicherheitsventil**:
+  - beobachtet die **Token-/Context-Nutzung** des aktiven Kontextfensters;
+  - **löst die Sicherung in AAMS-B aus, BEVOR die Kontextfenster-Grenze erreicht ist**
+    (aktueller Context + offene Arbeit → `memory` / `auditLog` / `tasks`);
+  - danach darf der Context geflusht/bereinigt werden → **nichts geht verloren**.
+
+### Wie das Gedächtnis entsteht (inkrementell)
+- **Session-Start:** frische AAMS-B-Instanz + Session-ID → IndexedDB.
+- **Loop** führt Sub-Tasks aus → Ergebnisse + Zustand → AAMS-B.
+- **Tokenwächter** sichert den aktiven Context in AAMS-B **bevor** das Kontextfenster überläuft.
 - **Session-Ende:** Endstand in IndexedDB · JSON-Export.
-- → Das Gedächtnis **wächst mit der Arbeit**; jeder Zyklus ergänzt die strukturierte Instanz.
-
-### Heartbeat (leicht, ~1 min, meist ohne LLM)
-Zweck: am Leben bleiben · Gedächtnis aktuell halten · VRAM sicher.
-1. Zustand prüfen (läuft? aktives Modell? VRAM?)
-2. VRAM-Validierung (Grenzen / OOM-Risiko?)
-3. **Status-Checkpoint → `auditLog`** (Zeitstempel, aktiver Task, Zustand)
-4. **Token-Flushing:** ausstehenden Arbeits-Context komprimiert → `memory`
-5. idle + fertige Sub-Task bereit? → **Loop triggern**
-
-### Loop (Arbeit, 15–30 min / schrittweise / ereignisgesteuert)
-Jeder Zyklus: **lesen → entscheiden → ausführen → SCHRIBEN → persistieren → (Modell entladen) → nächster Zyklus.**
-1. **Lesen** (Rolling Window): aktiver Task + pending Sub-Tasks + **nur** relevanter AAMS-Ausschnitt.
-2. **Entscheiden** (Superwächter): welche Sub-Task? größeres Modell nötig? (Planer laden falls nötig).
-3. **Ausführen:** Modell laden (falls nötig) → Sub-Task ausführen → Ergebnis.
-4. **SCHRIBEN (Kern!):** Task pending→in_progress→done+Ergebnis→`tasks` · Entscheidung (1–2 Sätze, wahr)→`memory` · was/wann/Outcome→`auditLog` · stabile Fakten→`knowledge`.
-5. **Persistieren** → IndexedDB (AAMS-B).
-6. **Modell entladen** (VRAM frei), wenn klar nicht mehr nötig.
-7. → nächster Zyklus, oder (alle done) → Session-Ende → Export.
+- → Das Gedächtnis wächst mit der Arbeit; der Tokenwächter garantiert, dass beim Context-Flush
+  nichts verloren geht.
 
 ### Invariante (Kern)
-Jeder Loop-Schritt + jeder Heartbeat **muss** in AAMS-B schreiben.
-**Ein Agent, der arbeitet ohne zu dokumentieren, existiert nicht.**
+Bevor ein Kontextfenster bereinigt/überläuft, **muss** sein Inhalt in AAMS-B gesichert sein
+(Tokenwächter). **Ein Agent, der arbeitet ohne zu dokumentieren, existiert nicht.**
 
 ## gedanken & analyse (kuratiert aus `observe/modelle-gedanken-grok.md` + `observe/waechter-vorschlag.md`)
 
@@ -155,7 +150,7 @@ const appConfig = {
 ## decision-candidates (VORSCHLAG — erst bei Bestätigung in WH)
 | Kandidat | Vorschlag | In WH? |
 |----------|-----------|--------|
-| **KERN: AAMS-Session-Gedächtnis** (AAMS=Session-Fundament; Agent dokumentiert sich selbst; Heartbeat+Loop→AAMS-B; Gedächtnis wächst inkrementell) | **der wichtigste Kern** | → ja (WH, #1) |
+| **KERN: AAMS-Session-Gedächtnis** (AAMS=Session-Fundament; Agent dokumentiert sich selbst; Heartbeat/Loop=**mechanisch**; **Tokenwächter** sichert Context vor Kontextgrenze) | **der wichtigste Kern** — explorativ | → ja, **erst nach Praxis-Check** (WH, #1) |
 | **Superwächter/Planer-Split** (2 Stufen: resident zuverlässig + as-needed Denker) | Kernarchitektur des Agenten | → ja (WH-002 neu?) |
 | **Modell-Strategie** (Superwächter klein / Planer 3B / schweres on-demand) | ja | → ja |
 | **Wahrheits-Regeln** (nur Wesentliches, wahr + sparsam ins AAMS; Planer liefert JSON) | ja — Kern der AAMS-Philosophie | → ja |
