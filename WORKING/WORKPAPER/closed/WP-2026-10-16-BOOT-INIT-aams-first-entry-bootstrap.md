@@ -1,7 +1,8 @@
 # WP-2026-10-16-BOOT-INIT — AAMS First-Entry Bootstrap
 
-**Status:** open
+**Status:** closed
 **BY:** — / opencode / qwen/qwen3.8-27b / local
+**Geschlossen:** 2026-10-16 (Task beendet; Scaffold in eigenes WP ausgegliedert)
 **Continued from:** —
 **TOPIC:** BOOT (Bootstrap) · **Sub-Topic:** INIT (Initialisierung)
 **Erstellt:** 2026-10-16
@@ -96,14 +97,11 @@ für künftige Sessions startklar (`on_session_start` / `on_session_end`).
 | (git) | `git init -b main` + Initial-Commit | Repo wird Git-Repo (Entscheidung #2) |
 | `idee.md`, `opencode.json`, `.agent.json` | **nicht** ändern | Vorhandene Inhalte bleiben unangetastet |
 
-## next_steps
+## Abschluss (closed)
 
-- [x] Code-Repo bestätigt (dieses Repo) · Git initiiert (`main`) · Whitepaper-Vorlage angelegt
-- [x] Erstes stabiles Whitepaper `WH-001` angelegt (Kernarchitektur + **AAMS-Doppelrolle** als Fundament)
-- [x] **Scaffold (Vite + TS):** `/src` (aams/ agent/ llm/ ui/), WebLLM-Adapter (lazy), Task-Queue,
-      AAMS(B)-Store (IndexedDB), JSON-IO, `WORKING/GUIDELINES/` — `npm run typecheck` ✅ + `npm run build` ✅
-- [ ] **LLM-Planer:** Task-Zerlegung via LLM (ersetzt Platzhalter) + echte Ausführung im Loop
-- [ ] **Helfer-Modelle** (OCR / Translation / Web-Fetch) via Transformers.js, on-demand, VRAM danach frei
-- [ ] **Tests** (Vitest) für `aams/*` + `task-queue` (Schema, Task-Status-Maschine, JSON-Roundtrip)
-- [ ] **Session-Ende:** WP abschließen → `closed/`, Whitepaper aktuell halten,
-      LTM-Inggest (ltm-index.md), READ-AGENT.md pflegen
+Bootstrap-Task **abgeschlossen**: Workspace · Git · WH-001 · Scaffold.
+- **Rollen-Trennung gesichert:** WH-001 = Wahrheit · WP = Plan/Umsetzung/Track.
+- Der Scaffold (eigener Task) wurde in ein eigenes, sauberes Workpaper ausgegliedert:
+  **`WP-2026-10-16-ARCH-SCAF-vite-ts-scaffold.md`** (open) — dort: Plan, Umsetzung, Verifikation,
+  offene Fragen (LLM-Planer, Helfer-Modelle, Tests, npm-audit).
+- Offene Folgearbeiten liegen **nicht** mehr hier, sondern im obigen Scaffold-WP.
