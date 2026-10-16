@@ -27,6 +27,7 @@ npm run typecheck  # tsc --noEmit
 - **AAMS(B)-Session** in IndexedDB: `session` + `tasks` (Task-Tree) + `auditLog` + `memory` + `knowledge`
 - **Task-Queue:** Sub-Tasks mit Status `pending / in_progress / done`
 - **JSON-Export/Import:** Portabilität + Backup/Restore (keine Cloud)
+- **Gedächtnis-Reset:** „Neue Session" komplett & sauber — automatischer Safety-Export, Audit-Spur (`session.reset`), Rollback bei Speicherfehler (idee.md §3A)
 - **WebLLM-Adapter (lazy):** WebGPU-Inferenz, austauschbar via `LLMEngine`-Interface
 
 ## Struktur

@@ -19,6 +19,7 @@
       .log .flush { color: #b3541e; font-weight: 600; }
       .log .step { opacity: .9; }
       .badge { font-size: .72rem; opacity: .65; }
+      button.danger { color: #b3261e; }
       small { opacity: .65; }
       #context { font-family: ui-monospace, monospace; font-size: .85rem; }
       .ctx-bar { height: 8px; background: #8882; border-radius: 4px; overflow: hidden; margin-top: .25rem; }
@@ -50,6 +51,7 @@
           <button id="run">▶ Schritt</button>
           <button id="export">⬇ JSON-Export</button>
           <label>⬆ Import<input type="file" id="import" accept="application/json,.json" hidden /></label>
+          <button id="reset" class="danger">↺ Gedächtnis zurücksetzen</button>
         </div>
         <div id="tasks"></div>
       </section>

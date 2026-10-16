@@ -59,6 +59,20 @@ export class KernSupervisor {
     void aamsStore.save(this.doc).catch(() => {});
   }
 
+  /**
+   * Vollständiger Reset (WP-SESS-RESET): Loop stoppen + interner Zustand nullen
+   * (Context-Tokens, Step-Zähler). **Ohne** Persistierung — die Orchestrierung
+   * (Safety-Export → `resetSession`) speichert genau einmal.
+   */
+  reset(): void {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    this.step = 0;
+    this.ctx.tokens = 0;
+  }
+
   /** Ein mechanischer Tick: Arbeit → Context → Tokenwächter-Check. */
   private tick = (): void => {
     this.step++;

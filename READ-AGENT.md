@@ -65,7 +65,12 @@ Details: `.agent.json → agent_conventions`.
 
 ## Aktueller Status
 
-- **Aktives Workpaper:** `WORKING/WORKPAPER/WP-2026-10-16-BOOT-INIT-aams-first-entry-bootstrap.md`
+- **Offene Workpapers:**
+  - `WORKING/WORKPAPER/WP-2026-10-16-ARCH-SCAF-vite-ts-scaffold.md`
+  - `WORKING/WORKPAPER/WP-2026-10-16-ARCH-WAEC-supervisor-architektur.md` (KERN + Wächter/Planer-Gedanken)
+  - `WORKING/WORKPAPER/WP-2026-10-16-KERN-PROTO-tokenwaechter-prototyp.md`
+  - `WORKING/WORKPAPER/WP-2026-10-16-BENCH-PLAN-benchmark-levels-webgpu.md` (aktuellster — Benchmark-Planung)
+- **Zuletzt geschlossen:** `WORKING/WORKPAPER/closed/WP-2026-10-16-SESS-RESET-agent-gedaechtnis-reset-komplett.md` (Gedächtnis-Reset, verifiziert)
 - **Team:** siehe `WORKING/TEAM.md`
 - **LTM:** `WORKING/MEMORY/ltm-index.md`
-- **Projekt-Stand:** Planungsphase (Vision vorhanden, noch kein Quellcode)
+- **Projekt-Stand:** Scaffold + KERN-Prototyp (Tokenwächter live beobachtbar) + **Gedächtnis-Reset** (komplett & sauber, verifiziert) · LLM-Arbeit noch Platzhalter · **Benchmark-Testing geplant** (Level 1–10, ≤ 4 GB VRAM-Profil)

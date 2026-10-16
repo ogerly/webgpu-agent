@@ -85,7 +85,7 @@
 
     "topic_registry": {
       "_doc": "Official TOPIC tags for workpaper naming. Used for RFL pattern-matching. Extensible — new tags may be added.",
-      "tags": ["ARCH", "SPEC", "LTM", "SEC", "BOOT", "FLD", "RES", "MKT", "ISS", "GOV", "EDU"],
+      "tags": ["ARCH", "SPEC", "LTM", "SEC", "BOOT", "FLD", "RES", "MKT", "ISS", "GOV", "EDU", "BENCH", "SESS"],
       "extensible": true
     },
 

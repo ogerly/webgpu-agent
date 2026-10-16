@@ -3,6 +3,7 @@
  * Boot: AAMS-B-Store (laden/neu) → WebLLM-Engine (lazy) → Agent → KERN-Supervisor → UI.
  */
 import { aamsStore } from "./aams/store";
+import { newSessionId } from "./aams/reset";
 import type { AAMSDocument } from "./aams/schema";
 import { WebLLMEngine } from "./llm/webllm";
 import { Agent } from "./agent/agent";
@@ -14,7 +15,7 @@ function newSession(title: string): AAMSDocument {
   return {
     version: "0.1.0",
     session: {
-      id: `s_${now}_${Math.random().toString(36).slice(2, 8)}`,
+      id: newSessionId(),
       title,
       createdAt: now,
       updatedAt: now,

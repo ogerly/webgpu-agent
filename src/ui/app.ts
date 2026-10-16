@@ -4,6 +4,7 @@
  */
 import type { AAMSDocument } from "../aams/schema";
 import { downloadJSON, parseJSON } from "../aams/io";
+import { resetSession } from "../aams/reset";
 import type { Agent } from "../agent/agent";
 import type { KernSupervisor, KernTickInfo } from "../kern/supervisor";
 
@@ -71,6 +72,19 @@ export function renderKern(app: HTMLElement, info: KernTickInfo): void {
   while (log.children.length > 100) log.lastChild?.remove();
 }
 
+// ① KERN nach Reset: Context-Balken 0 + „zurückgesetzt"-Zeile im Log
+export function renderKernReset(app: HTMLElement): void {
+  const ctx = app.querySelector<HTMLElement>("#context");
+  if (ctx) ctx.textContent = "Context: 0 Tokens (0%) — zurückgesetzt";
+  const fill = app.querySelector<HTMLElement>("#ctx-fill");
+  if (fill) fill.style.width = "0%";
+  const log = app.querySelector<HTMLElement>("#kern-log");
+  if (log) {
+    log.innerHTML =
+      '<div class="line flush">↺ Gedächtnis zurückgesetzt — Loop gestoppt, Context leer</div>';
+  }
+}
+
 // Alle Controls verdrahten (einmalig)
 export function wire(app: HTMLElement, doc: AAMSDocument, agent: Agent, kern: KernSupervisor): void {
   const renderAll = (): void => {
@@ -101,6 +115,35 @@ export function wire(app: HTMLElement, doc: AAMSDocument, agent: Agent, kern: Ke
     renderAll();
   });
   app.querySelector<HTMLButtonElement>("#export")?.addEventListener("click", () => downloadJSON(doc));
+  // ② Gedächtnis komplett & sauber zurücksetzen (WP-SESS-RESET):
+  //    Bestätigung → KERN-Stop → Safety-Export → In-Place-Reset (+Rollback bei Fehler) → Render.
+  app.querySelector<HTMLButtonElement>("#reset")?.addEventListener("click", () => {
+    const s = doc.session;
+    const ok = confirm(
+      "Gedächtnis KOMPLETT zurücksetzen?\n\n" +
+        `Wird gelöscht: ${s.tasks.length} Tasks · ${s.auditLog.length} Audit-Einträge · ` +
+        `${s.memory.length} Memory-Einträge · ${s.knowledge.length} Wissen.\n` +
+        "Der KERN-Loop wird gestoppt. Ein Safety-Export (JSON) wird automatisch ausgelöst."
+    );
+    if (!ok) return;
+    (async () => {
+      try {
+        kern.reset(); // 1) Timer stoppen + tokens/step nullen (keine Waisen-Write)
+        downloadJSON(doc, `aams-safety-${doc.session.id}.json`); // 2) Safety-Export (alter Zustand)
+        const report = await resetSession(doc); // 3) In-Place-Reset + Persist (Rollback bei Fehler)
+        renderKernReset(app); // 4) KERN-Panel neu
+        renderAll(); // 5) Session/Tasks/Memory/Audit neu
+        setProgress(
+          `Gedächtnis zurückgesetzt → neue Session ${report.newId} ` +
+            `(${report.previousCounts.tasks} Tasks + ${report.previousCounts.auditLog} Audit der alten Session exportiert).`
+        );
+      } catch (err) {
+        // Rollback hat den alten Zustand wiederhergestellt → einfach neu rendern (kein „zurückgesetzt"!).
+        renderAll();
+        setProgress(`Fehler: ${(err as Error).message}`);
+      }
+    })();
+  });
   const importFile = app.querySelector<HTMLInputElement>("#import");
   importFile?.addEventListener("change", async (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
