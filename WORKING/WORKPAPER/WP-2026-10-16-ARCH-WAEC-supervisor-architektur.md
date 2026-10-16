@@ -18,7 +18,51 @@ geladenes Modell orchestriert, lädt größere Modelle on-demand nach, startet U
 Ergebnis, entlädt das große Modell (VRAM frei) und schreibt Ergebnis + Audit-Log in AAMS-B (IndexedDB).
 Dazu: UI-Konzept (3-Panel) + Token-Management. Ziel: klare Optionen, offene Fragen, Entscheidungsvorschläge.
 
-## gedanken & analyse (kuratiert aus `observe/modelle-gedanken-grok.md`)
+## KERN — AAMS-Session-Gedächtnis (Herzstück, WH-Kandidat #1)
+
+> **Der wichtigste Kern:** AAMS ist das Fundament einer Session. Der Agent **dokumentiert sich
+> selbst** — jeder Heartbeat + jeder Loop-Schritt schreibt Entscheidungen, Schritte und erledigte
+> Schritte sauber + sparsam in die AAMS-B-Schichten. Der Prozess bleibt lückenlos nachvollziehbar
+> für die Dauer der Session/Aufgabe. **Das Gedächtnis IST der Prozess.**
+
+### AAMS-B-Schichten (spiegeln AAMS-A)
+| AAMS-A (Dev) | AAMS-B (Agent) | hält |
+|--------------|----------------|------|
+| WORKPAPER | `tasks` | Schritte (Task-Tree: pending / in_progress / done) |
+| DIARY | `auditLog` | Zeitindex: was geschah wann (Entscheidungen, Steps, Outcome) |
+| MEMORY (LTM) | `memory` | Langzeit-Kontext: Entscheidungen, Fakten |
+| WHITEPAPER | `knowledge` | stabile Wahrheit (Regeln) |
+
+### Wie wird das Gedächtnis erstellt? (inkrementell — nicht vorgekocht)
+- **Session-Start:** frische AAMS-B-Instanz (leere `tasks`/`auditLog`/`memory`/`knowledge`) + Session-ID → IndexedDB.
+- **Jeder Loop-Schritt** schreibt: Task-Status+Ergebnis→`tasks` · Entscheidung+Begründung→`memory` · was/wann/Outcome→`auditLog` · stabile Fakten→`knowledge`.
+- **Jeder Heartbeat** schreibt: Status-Checkpoint→`auditLog` · ausstehenden Context→`memory` (Flushing).
+- **Session-Ende:** Endstand in IndexedDB · JSON-Export.
+- → Das Gedächtnis **wächst mit der Arbeit**; jeder Zyklus ergänzt die strukturierte Instanz.
+
+### Heartbeat (leicht, ~1 min, meist ohne LLM)
+Zweck: am Leben bleiben · Gedächtnis aktuell halten · VRAM sicher.
+1. Zustand prüfen (läuft? aktives Modell? VRAM?)
+2. VRAM-Validierung (Grenzen / OOM-Risiko?)
+3. **Status-Checkpoint → `auditLog`** (Zeitstempel, aktiver Task, Zustand)
+4. **Token-Flushing:** ausstehenden Arbeits-Context komprimiert → `memory`
+5. idle + fertige Sub-Task bereit? → **Loop triggern**
+
+### Loop (Arbeit, 15–30 min / schrittweise / ereignisgesteuert)
+Jeder Zyklus: **lesen → entscheiden → ausführen → SCHRIBEN → persistieren → (Modell entladen) → nächster Zyklus.**
+1. **Lesen** (Rolling Window): aktiver Task + pending Sub-Tasks + **nur** relevanter AAMS-Ausschnitt.
+2. **Entscheiden** (Superwächter): welche Sub-Task? größeres Modell nötig? (Planer laden falls nötig).
+3. **Ausführen:** Modell laden (falls nötig) → Sub-Task ausführen → Ergebnis.
+4. **SCHRIBEN (Kern!):** Task pending→in_progress→done+Ergebnis→`tasks` · Entscheidung (1–2 Sätze, wahr)→`memory` · was/wann/Outcome→`auditLog` · stabile Fakten→`knowledge`.
+5. **Persistieren** → IndexedDB (AAMS-B).
+6. **Modell entladen** (VRAM frei), wenn klar nicht mehr nötig.
+7. → nächster Zyklus, oder (alle done) → Session-Ende → Export.
+
+### Invariante (Kern)
+Jeder Loop-Schritt + jeder Heartbeat **muss** in AAMS-B schreiben.
+**Ein Agent, der arbeitet ohne zu dokumentieren, existiert nicht.**
+
+## gedanken & analyse (kuratiert aus `observe/modelle-gedanken-grok.md` + `observe/waechter-vorschlag.md`)
 
 ### 1. Wächter/Supervisor-Pattern (Kern) — **zweistufig**
 **Rollen-Trennung (wichtig — `waechter-vorschlag.md`):**
@@ -111,10 +155,12 @@ const appConfig = {
 ## decision-candidates (VORSCHLAG — erst bei Bestätigung in WH)
 | Kandidat | Vorschlag | In WH? |
 |----------|-----------|--------|
+| **KERN: AAMS-Session-Gedächtnis** (AAMS=Session-Fundament; Agent dokumentiert sich selbst; Heartbeat+Loop→AAMS-B; Gedächtnis wächst inkrementell) | **der wichtigste Kern** | → ja (WH, #1) |
 | **Superwächter/Planer-Split** (2 Stufen: resident zuverlässig + as-needed Denker) | Kernarchitektur des Agenten | → ja (WH-002 neu?) |
 | **Modell-Strategie** (Superwächter klein / Planer 3B / schweres on-demand) | ja | → ja |
 | **Wahrheits-Regeln** (nur Wesentliches, wahr + sparsam ins AAMS; Planer liefert JSON) | ja — Kern der AAMS-Philosophie | → ja |
 | Token-Mgmt (Rolling Window + Heartbeat + Flushing) | ja | → ja |
+| **Tools = manuelle Liste** (keine Auto-Erkennung) | ja | → ja (kurz) |
 | UI 3-Panel (Chat / Supervisor-Log / Live-Gedächtnis) | Vorschlag | → erst Design-WP, dann ggf. WH |
 
 ## next_steps
