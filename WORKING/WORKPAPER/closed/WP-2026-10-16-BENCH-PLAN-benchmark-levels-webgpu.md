@@ -1,6 +1,6 @@
 # WP-2026-10-16-BENCH-PLAN — Benchmark-Testing (Level 1–10) · WebGPU-Profil ≤ 4 GB VRAM
 
-**Status:** open
+**Status:** closed ✅ (2026-10-16 — Planung abgeschlossen, stabile Teile → **WH-002**)
 **BY:** — / opencode / qwen/qwen3.8-27b / local
 **Continued from:** `WP-2026-10-16-KERN-PROTO-tokenwaechter-prototyp.md`
 **TOPIC:** BENCH (neu im topic_registry) · **Sub-Topic:** PLAN
@@ -290,13 +290,20 @@ Befund (warum nicht) ist sauber dokumentiert — beides ist ein gültiges Ergebn
 5. Live-Web-Track: schon jetzt (Web-Fetch-Helfer) oder erst nach L5-Stabilität?
 6. L10-Datenset: welches fixe Set (Energie/Wetter/Preise)? → in `bench/corpus/` fixieren
 
-## next_steps
+## next_steps (Stand bei Schließung)
 
-- [ ] **Bestätigen** (User): Level-Definition + Szenario-Texte L1–L5 + L10
-- [ ] Modell-Pool `src/llm/pool.ts` (Wächter resident + Planer on-demand + Fallback)
-- [ ] `Agent.plan()/runStep()` → echte LLM-Zerlegung/-Ausführung (ersetzt Scaffold-Platzhalter)
-- [ ] `src/bench/*` (scenarios, report) + UI-Benchmark-Seite + Panel ④ „Maschine"
+- [x] **Bestätigt** (User): Level-Definition + Szenario-Texte L1–L5 + L10 → in **WH-002** fixiert
+- [x] Modell-Pool `src/llm/pool.ts` (Wächter resident + Planer on-demand + Fallback) — `WP-…-BENCH-IMPL`
+- [x] `Agent.plan()/runStep()` → echte LLM-Zerlegung/-Ausführung — `WP-…-BENCH-IMPL`
 - [x] **Voraussetzung saubere Runs:** frisches Gedächtnis pro Run — Gedächtnis-Reset vorhanden
-      (`WP-2026-10-16-SESS-RESET-…`, closed, Button „↺ Gedächtnis zurücksetzen" in Panel ②)
-- [ ] **Erster Testlauf L1 × 3 Kategorien × 5 Runs** → Erkenntnisse + Befund in dieses WP
-- [ ] Stabil? → **WH-002-BENCH** anlegen (WH-Kandidat §10)
+      (`WP-2026-10-16-SESS-RESET-…`, closed)
+- [ ] **→ nächstes WP:** `src/bench/*` (scenarios, report) + UI-Benchmark-Seite (Textseiten L1–L5)
+      + Panel „Maschine" (WebGPU/CPU/RAM/Speicher + MachineProfile)
+- [ ] **→ nächstes WP:** Erster Testlauf L1 × 3 Kategorien × 5 Runs → Erkenntnisse (dann WH-002 prüfen)
+
+## close (2026-10-16)
+
+Planung erfüllt (DoD erreicht). Die **stabile** Ebene — Level-System, Szenario-Kategorien,
+Ziel-Hardware-Profil, Modell-Pool-Strategie, Pass-Regel, Reproduzierbarkeits-Protokoll,
+ehrliche Grenzen — ist am **2026-10-16 als `WH-002-BENCH-benchmark-levels-webgpu.md`**
+fixiert (WP → WH → LTM, Kette eingehalten). Umsetzung & offene Testläufe → nächste Workpapers.

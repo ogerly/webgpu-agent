@@ -1,6 +1,6 @@
 # WP-2026-10-16-ARCH-SCAF — Code-Scaffold (Vite+TS) planen & umsetzen
 
-**Status:** open
+**Status:** closed ✅ (2026-10-16 — Scaffold gebaut & verifiziert; Kernerfolg weitergeführt)
 **BY:** — / opencode / qwen/qwen3.8-27b / local
 **Continued from:** `WP-2026-10-16-BOOT-INIT-aams-first-entry-bootstrap.md` (→ `closed/`)
 **TOPIC:** ARCH · **Sub-Topic:** SCAF
@@ -79,9 +79,15 @@ Wie Inventory; Details in den Header-Kommentaren je Datei. **Platzhalter (bewuss
 | `node_modules/`, `dist/` | gitignore (nie committen) |
 | `WORKING/WORKPAPER/WP-…-BOOT-INIT-…md` | close → `closed/` (Task beendet, WP ausgegliedert) |
 
-## next_steps
-- [ ] **LLM-Planer:** Task-Zerlegung via LLM + echte Ausführung im Loop (ersetzt Platzhalter)
-- [ ] **Tests** (Vitest): `aams/*` + `task-queue` (Schema, Task-Maschine, JSON-Roundtrip)
-- [ ] **Helfer-Modelle** (OCR / Translation / Web-Fetch) via Transformers.js, on-demand, VRAM danach frei
-- [ ] **npm audit:** die 2 Vulns (1 high) identifizieren + entscheiden
-- [ ] **Session-Ende:** dieses WP → `closed/`, WH-001 aktuell halten, LTM-Inggest
+## next_steps (Stand bei Schließung)
+- [x] **LLM-Planer:** Task-Zerlegung via LLM + echte Ausführung → **erledigt** in
+      `WP-…-BENCH-IMPL` (Planer-JSON + Executor-Regel + Modell-Pool)
+- [ ] **→ nächstes WP:** Tests (Vitest): `aams/*` + `task-queue` + `llm/pool` (Schema, Task-Maschine, JSON-Roundtrip)
+- [ ] **→ nächstes WP:** Helfer-Modelle (OCR / Translation / Web-Fetch) via Transformers.js, on-demand
+- [ ] **→ nächstes WP:** npm audit: die 2 Vulns (1 high) identifizieren + entscheiden
+- [x] Session-Ende: WP → `closed/`, WH aktuell (WH-001 + WH-002), LTM-Inggest
+
+## close (2026-10-16)
+Mission erfüllt: Scaffold nach WH-001 gebaut, typecheck + build grün, Platzhalter explizit
+markiert. Der zentrale Next-Step (LLM-Planer) ist in `WP-…-BENCH-IMPL` realisiert.
+Offene Punkte (Tests, Helfer-Modelle, npm audit) sind als „→ nächstes WP" geroutet.

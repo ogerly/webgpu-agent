@@ -63,14 +63,16 @@ Weitere Konventionen:
 
 Details: `.agent.json → agent_conventions`.
 
+## Whitepapers (Quelle der Wahrheit)
+
+- `WORKING/WHITEPAPER/WH-001-ARCH-webgpu-single-agent-prototype.md` — Kernarchitektur + AAMS-Doppelrolle
+- `WORKING/WHITEPAPER/WH-002-BENCH-benchmark-levels-webgpu.md` — **Benchmark-System** (Level 1–10, ≤ 4 GB VRAM-Profil, Pass-Regel 5/5, Reproduzierbarkeit)
+
 ## Aktueller Status
 
 - **Offene Workpapers:**
-  - `WORKING/WORKPAPER/WP-2026-10-16-ARCH-SCAF-vite-ts-scaffold.md`
-  - `WORKING/WORKPAPER/WP-2026-10-16-ARCH-WAEC-supervisor-architektur.md` (KERN + Wächter/Planer-Gedanken)
-  - `WORKING/WORKPAPER/WP-2026-10-16-KERN-PROTO-tokenwaechter-prototyp.md`
-  - `WORKING/WORKPAPER/WP-2026-10-16-BENCH-PLAN-benchmark-levels-webgpu.md` (aktuellster — Benchmark-Planung)
-- **Zuletzt geschlossen:** `WORKING/WORKPAPER/closed/WP-2026-10-16-SESS-RESET-agent-gedaechtnis-reset-komplett.md` (Gedächtnis-Reset, verifiziert)
+  - `WORKING/WORKPAPER/WP-2026-10-16-BENCH-IMPL-modell-pool-echter-agent-loop.md` (einziger offen — Modell-Pool + **Modell-Panel ①** (Auswahl + Downloadstand) + echter Loop; **Browser-Test des Agenten-Flusses offen** → dann close)
+- **Zuletzt geschlossen (2026-10-16):** `BENCH-PLAN` (→ WH-002) · `ARCH-SCAF` · `ARCH-WAEC` · `KERN-PROTO` · `SESS-RESET` (alle in `WORKING/WORKPAPER/closed/`)
 - **Team:** siehe `WORKING/TEAM.md`
 - **LTM:** `WORKING/MEMORY/ltm-index.md`
-- **Projekt-Stand:** Scaffold + KERN-Prototyp (Tokenwächter live beobachtbar) + **Gedächtnis-Reset** (komplett & sauber, verifiziert) · LLM-Arbeit noch Platzhalter · **Benchmark-Testing geplant** (Level 1–10, ≤ 4 GB VRAM-Profil)
+- **Projekt-Stand:** Scaffold + KERN-Prototyp (beobachtet) + **Gedächtnis-Reset** (verifiziert) + **Modell-Pool mit Panel ①** (Auswahl + Downloadstand) + **echter Agent-Loop** (Planer-JSON, Executor-Regel, echte Token-Usage) · **Benchmark-System = WH-002** · nächste Einheiten: Benchmark-Seite (Szenario-Textseiten L1–L5) + Panel „Maschine" + Run-Report + erster L1-Testlauf

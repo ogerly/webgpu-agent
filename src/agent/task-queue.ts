@@ -60,6 +60,26 @@ export class TaskQueue {
     return this.pending().sort((a, b) => a.createdAt - b.createdAt)[0];
   }
 
+  /** Offene (pending) Kinder einer Aufgabe. */
+  pendingChildren(parentId: string): AAMSTask[] {
+    return this.pending().filter((t) => t.parentId === parentId);
+  }
+
+  /**
+   * Nächste **ausführbare** Aufgabe (WP-BENCH-IMPL): erste offene (FIFO), die
+   * **keine offenen Kinder** hat. (Wurzel mit offenen Kindern = Container → überspringen.)
+   */
+  nextExecutable(): AAMSTask | undefined {
+    const candidates = this.pending().sort((a, b) => a.createdAt - b.createdAt);
+    return candidates.find((t) => this.pendingChildren(t.id).length === 0);
+  }
+
+  /** True, wenn die Aufgabe mindestens ein Kind hat und alle Kinder done sind. */
+  allChildrenDone(id: string): boolean {
+    const kids = this.children(id);
+    return kids.length > 0 && kids.every((k) => k.status === "done");
+  }
+
   private audit(action: string, target?: string, note?: string): void {
     this.session.auditLog.push({
       id: uid("a"),

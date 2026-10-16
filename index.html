@@ -24,6 +24,20 @@
       #context { font-family: ui-monospace, monospace; font-size: .85rem; }
       .ctx-bar { height: 8px; background: #8882; border-radius: 4px; overflow: hidden; margin-top: .25rem; }
       .ctx-bar > span { display: block; height: 100%; width: 0; background: #4a90d9; transition: width .2s; }
+      /* ① Modell-Pool */
+      .pool-row { margin: .45rem 0; padding: .55rem 0; border-top: 1px solid #8882; }
+      .pool-head { display: flex; gap: .5rem; align-items: baseline; margin-bottom: .35rem; }
+      .state { font-size: .78rem; margin-left: auto; white-space: nowrap; }
+      .state.on { color: #1e7d34; font-weight: 600; }
+      .state.loading { color: #b3541e; font-weight: 600; }
+      select { padding: .35rem .5rem; max-width: 260px; }
+      .dl { margin-top: .7rem; }
+      .dl-title { font-family: ui-monospace, monospace; font-size: .82rem; margin-bottom: .3rem; }
+      .dl-bar { height: 12px; }
+      .dl-bar > span { background: #4a90d9; }
+      .dl-meta { display: flex; gap: 1.1rem; margin-top: .3rem; font-size: .78rem; flex-wrap: wrap; }
+      .dl-meta #dl-pct { font-weight: 700; min-width: 3.2rem; }
+      .hidden { display: none; }
     </style>
   </head>
   <body>
@@ -34,7 +48,47 @@
       <p id="session-id">…</p>
 
       <section class="panel">
-        <h2>① KERN-Loop (mechanisch) + Tokenwächter</h2>
+        <h2>① Modell-Pool (WebGPU)</h2>
+        <p class="badge">Zielprofil ≤ 4096 MB VRAM · geladen: <b id="pool-used">0</b> MB</p>
+
+        <div class="pool-row">
+          <div class="pool-head">
+            <b>Wächter</b> <small>(resident)</small>
+            <span id="waechter-state" class="state">○ nicht geladen</span>
+          </div>
+          <div class="toolbar">
+            <select id="waechter-select" aria-label="Wächter-Modell"></select>
+            <button id="waechter-load">▶ Laden</button>
+            <button id="waechter-unload">⏹ Entladen</button>
+          </div>
+        </div>
+
+        <div class="pool-row">
+          <div class="pool-head">
+            <b>Planer</b> <small>(on-demand)</small>
+            <span id="planer-state" class="state">○ nicht geladen</span>
+          </div>
+          <div class="toolbar">
+            <select id="planer-select" aria-label="Planer-Modell"></select>
+            <button id="planer-load">▶ Laden</button>
+            <button id="planer-unload">⏹ Entladen</button>
+          </div>
+        </div>
+
+        <div id="dl" class="dl hidden">
+          <div class="dl-title" id="dl-title">…</div>
+          <div class="ctx-bar dl-bar"><span id="dl-fill"></span></div>
+          <div class="dl-meta">
+            <span id="dl-pct">0%</span>
+            <span id="dl-text" class="badge"></span>
+            <span id="dl-time" class="badge"></span>
+            <span id="dl-size" class="badge"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>② KERN-Loop (mechanisch) + Tokenwächter</h2>
         <div class="toolbar">
           <button id="kern-start">▶ Loop starten</button>
           <button id="kern-stop">⏹ Loop stoppen</button>
@@ -45,7 +99,7 @@
       </section>
 
       <section class="panel">
-        <h2>② Session &amp; Tasks</h2>
+        <h2>③ Session &amp; Tasks</h2>
         <div class="toolbar">
           <button id="plan">+ Aufgabe planen</button>
           <button id="run">▶ Schritt</button>
@@ -57,7 +111,7 @@
       </section>
 
       <section class="panel">
-        <h2>③ Live AAMS-Gedächtnis (AAMS-B)</h2>
+        <h2>④ Live AAMS-Gedächtnis (AAMS-B)</h2>
         <h3>Memory (Gedächtnis)</h3>
         <div id="memory" class="log"></div>
         <h3>Audit-Log (Diary)</h3>

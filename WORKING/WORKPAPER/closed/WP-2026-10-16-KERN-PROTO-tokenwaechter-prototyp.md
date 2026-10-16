@@ -1,6 +1,6 @@
 # WP-2026-10-16-KERN-PROTO — Tokenwächter-Prototyp (KERN in der Praxis beobachten)
 
-**Status:** open
+**Status:** closed ✅ (2026-10-16 — Mechanik live beobachtet & belegt)
 **BY:** — / opencode / qwen/qwen3.8-27b / local
 **Continued from:** `WP-2026-10-16-ARCH-WAEC-supervisor-architektur.md` (KERN-Definition)
 **TOPIC:** KERN · **Sub-Topic:** PROTO
@@ -45,7 +45,15 @@ nichts verloren. Alles live in **Panel ③ (Live-Gedächtnis)** sichtbar.
 - Tokenwächter **pro Engine** oder **global**?
 - Should-der-Loop automatisch starten oder immer explizit (mechanischer Trigger)?
 
-## next_steps
-- [ ] Reale Token-Integration (WebLLM-Usage → Context, statt Simulation)
-- [ ] Tokenwächter-Parameter (limit/threshold/tickMs) konfigurierbar in UI
-- [ ] Erkenntnisse finalisieren → KERN-Definition (dann WH-Kandidat #1)
+## next_steps (Stand bei Schließung)
+- [x] **Reale Token-Zählung** technisch gelöst: `ChatCompletion.usage` liefert echte
+      Token-Zahlen → `ChatResult.usage` + Audit `llm.execute` (`WP-…-BENCH-IMPL`)
+- [ ] **→ nächstes WP:** echte Tokens in den **Tokenwächter** einbinden (statt Simulation)
+- [ ] **→ nächstes WP:** Tokenwächter-Parameter (limit/threshold/tickMs) konfigurierbar in UI
+- [ ] **KERN-Definition → WH-Kandidat** (bleibt offen: erst nach Benchmark-Validierung — WH-002 §5)
+
+## close (2026-10-16)
+Mission erfüllt: Minimal-Beobachtungsgerüst gebaut, **Tokenwächter live beobachtet** (User),
+Mechanik im Export belegt (Flush-Zyklus exakt alle 6 Schritte = `ceil(4096·0.8/600)`,
+Step-Rhythmus 1500 ms, Audit/Memory intakt — Daten-Check in `WP-…-BENCH-PLAN` §1).
+Offene Punkte (Tokenwächter-Parameter, echte Tokens im Wächter) sind als „→ nächstes WP" geroutet.

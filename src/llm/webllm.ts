@@ -12,7 +12,7 @@ import type {
   InitProgressCallback,
   MLCEngine,
 } from "@mlc-ai/web-llm";
-import type { ChatMessage, ChatOptions, LLMEngine } from "./engine";
+import type { ChatMessage, ChatOptions, ChatResult, LLMEngine } from "./engine";
 
 export interface WebLLMOptions {
   /** Modell-ID. Default: kompaktes Instruct-Modell (passt in Consumer-VRAM). */
@@ -53,7 +53,7 @@ export class WebLLMEngine implements LLMEngine {
     this.engine = await CreateMLCEngine(this.modelName, engineConfig);
   }
 
-  async chat(messages: ChatMessage[], opts: ChatOptions = {}): Promise<string> {
+  async chat(messages: ChatMessage[], opts: ChatOptions = {}): Promise<ChatResult> {
     if (!this.engine) {
       throw new Error("WebLLM-Engine nicht geladen — zuerst `load()` aufrufen.");
     }
@@ -63,6 +63,23 @@ export class WebLLMEngine implements LLMEngine {
       max_tokens: opts.maxTokens ?? 1024,
     });
     // `content` ist `string | null` → sicher auf string mappen.
-    return res.choices[0]?.message?.content ?? "";
+    const content = res.choices[0]?.message?.content ?? "";
+    // Echte Token-Zahlen (KERN-PROTO offene Frage „reale Token-Zählung" — gelöst).
+    const usage = res.usage
+      ? {
+          promptTokens: res.usage.prompt_tokens,
+          completionTokens: res.usage.completion_tokens,
+          totalTokens: res.usage.total_tokens,
+        }
+      : undefined;
+    return { content, usage };
+  }
+
+  /** Modell entladen → VRAM frei (WP-BENCH-IMPL: Modell-Pool on-demand). */
+  async unload(): Promise<void> {
+    if (this.engine) {
+      await this.engine.unload();
+      this.engine = null;
+    }
   }
 }

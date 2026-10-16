@@ -1,6 +1,6 @@
 # WP-2026-10-16-ARCH-WAEC — Wächter/Supervisor-Architektur (Gedanken & Analyse)
 
-**Status:** open — *Gedanken/Analyse, noch **nicht** als WH-Wahrheit fixiert*
+**Status:** closed ✅ (2026-10-16 — Kerner Gedanken umgesetzt & fixiert, s. close)
 **BY:** — / opencode / qwen/qwen3.8-27b / local
 **Continued from:** `WP-2026-10-16-ARCH-SCAF-vite-ts-scaffold.md`
 **Quellen (Rohmaterial):** `observe/modelle-gedanken-grok.md` + `observe/waechter-vorschlag.md` (deine Gedanken + Grok + Gemini-Analyse)
@@ -158,9 +158,18 @@ const appConfig = {
 | **Tools = manuelle Liste** (keine Auto-Erkennung) | ja | → ja (kurz) |
 | UI 3-Panel (Chat / Supervisor-Log / Live-Gedächtnis) | Vorschlag | → erst Design-WP, dann ggf. WH |
 
-## next_steps
-- [ ] **Bestätigen:** welche Gedanken → WH-Decision (WH-001 erweitern oder WH-002 anlegen)
-- [ ] Wächter-Mechanik spezifizieren (Engine-Reload vs. Multi-Engine, VRAM-Budget)
-- [ ] UI-Panel 3: AAMS-B-Dateien-Modell (`.md` in IndexedDB) klären
-- [ ] Umsetzung: **Supervisor-Loop** in `src/agent/` (ersetzt die Scaffold-Platzhalter in `plan()`/`runStep()`)
-- [ ] Modelle in `src/llm/webllm.ts` (resident Wächter + on-demand Workhorse) anbinden
+## next_steps (Stand bei Schließung)
+- [x] **Bestätigt:** stabile Entscheidungen fixiert — KERN (explorativ, WH-Kandidat) ·
+      Superwächter/Planer-Split + Modell-Strategie + Auswahl-Regeln → **WH-002 (Decision 5, 6)**
+- [x] Wächter-Mechanik: **ein Engine-Objekt pro Rolle + `unload()`** (kein Multi-Engine-Parallel),
+      VRAM-Budget + Fallback → `src/llm/pool.ts` (WH-002 §3.2)
+- [ ] **→ nächstes WP:** UI-Panel „Gedächtnis": AAMS-B-Dateien-Modell (`.md` in IndexedDB) klären
+- [x] Umsetzung Supervisor/Agent: `plan()`/`runStep()` real → `WP-…-BENCH-IMPL`
+- [x] Modelle anbinden: Modell-Pool (resident Wächter + on-demand Planer) → `src/llm/pool.ts`
+
+## close (2026-10-16)
+Die tragenden Gedanken dieses WPs sind **umgesetzt und fixiert**: Superwächter/Planer-Split,
+Modell-Strategie (VRAM-Budget, Fallback), Auswahl-/Executor-Regeln, Planer-JSON,
+Wahrheits-Regeln (kompakt + sparsam ins AAMS) → Code (`src/llm/pool.ts`, `src/agent/agent.ts`)
+und **WH-002** (Decisions 5–6, 9). KERN bleibt **WH-Kandidat** (nach Benchmark-Validierung).
+Offen bleibt: Gegenfragen-Mechanik, Panel-3 `.md`-Modell, Token-Budget pro Schritt → „→ nächstes WP".
