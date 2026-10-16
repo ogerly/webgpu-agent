@@ -10,3 +10,5 @@
 | 2 | 2026-10-16 | config | —/opencode/qwen/qwen3.8-27b/local | `opencode.json` | OpenCode-Runtime: lokales LM-Studio-Gateway (LAN), aktives Modell `qwen/qwen3.8-27b` |
 | 3 | 2026-10-16 | manifest | —/opencode/qwen/qwen3.8-27b/local | `.agent.json` | AAMS/2.6.0 (2026-09-23) geladen; `on_first_entry` ausgeführt |
 | 4 | 2026-10-16 | bootstrap | —/opencode/qwen/qwen3.8-27b/local | `WP-2026-10-16-BOOT-INIT-aams-first-entry-bootstrap.md` | Workspace initialisiert: Struktur, READ-AGENT.md, TEAM.md, LTM-Index |
+| 5 | 2026-10-16 | decision | —/opencode/qwen/qwen3.8-27b/local | `WP-2026-10-16-BOOT-INIT-…` | Entscheidungen: **Code-Repo hier** · **Git-Init** (`main`) · **Whitepaper=Quelle der Wahrheit** (Vorlage, kein Spiegel) |
+| 6 | 2026-10-16 | template | —/opencode/qwen/qwen3.8-27b/local | `WORKING/WHITEPAPER/TEMPLATE.md` | Whitepaper-Vorlage (autorfrei, Decision-Log); neue `WH-NNN` entstehen erst bei stabilen Entscheidungen |
