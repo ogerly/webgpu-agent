@@ -1,0 +1,162 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": true,
+  "model": "mantis/qwen/qwen3.8-27b",
+  "provider": {
+    "mantis": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "MANTIS LLM Gateway",
+      "options": {
+        "baseURL": "http://172.19.224.1:9876/v1",
+        "apiKey": "mantis-local-proxy"
+      },
+      "models": {
+        "qwen/qwen3.6-35b-a3b": {
+          "name": "LM Studio: Qwen 3.6 35B A3B (lokal)",
+          "limit": {
+            "context": 262144,
+            "output": 32768
+          }
+        },
+        "qwen/qwen3.8-27b": {
+          "name": "LM Studio: Qwen 3.8 27B (lokal)",
+          "limit": {
+            "context": 262144,
+            "output": 32768
+          }
+        },
+        "prism-ml/bonsai-27b": {
+          "name": "LM Studio: Bonsai 27B (lokal)",
+          "limit": {
+            "context": 262144,
+            "output": 32768
+          }
+        },
+        "gpt-oss:20b-cloud": {
+          "name": "Ollama Cloud: gpt-oss 20B (OpenAI, Free)",
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          }
+        },
+        "nemotron-3-nano:30b-cloud": {
+          "name": "Ollama Cloud: Nemotron 3 Nano 30B (NVIDIA, Free)"
+        },
+        "gpt-oss:120b-cloud": {
+          "name": "Ollama Cloud: gpt-oss 120B (OpenAI, Free)",
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          }
+        },
+        "qwen3.8-max-alibaba": {
+          "name": "Alibaba Cloud: Qwen 3.8 Max (Free)"
+        },
+        "qwen3.7-flash-alibaba": {
+          "name": "Alibaba Cloud: Qwen 3.7 Flash (Free)"
+        },
+        "qwen3.7-plus-alibaba": {
+          "name": "Alibaba Cloud: Qwen 3.7 Plus (Free)"
+        },
+        "qwen3.6-flash-alibaba": {
+          "name": "Alibaba Cloud: Qwen 3.6 Flash (Free)"
+        },
+        "qwen3.6-35b-a3b-alibaba": {
+          "name": "Alibaba Cloud: Qwen 3.6 35B A3B (Free)",
+          "limit": {
+            "context": 262144,
+            "output": 32768
+          }
+        },
+        "qwen-flash-alibaba": {
+          "name": "Alibaba Cloud: Qwen Flash (Free)"
+        },
+        "qwen-max-alibaba": {
+          "name": "Alibaba Cloud: Qwen Max (Free)"
+        },
+        "deepseek-v4-flash-alibaba": {
+          "name": "Alibaba Cloud: DeepSeek V4 Flash (Free)"
+        },
+        "glm-5.2-alibaba": {
+          "name": "Alibaba Cloud: GLM 5.2 (Free)"
+        },
+        "openrouter/free": {
+          "name": "OpenRouter: Free Models Router (automatisch)"
+        },
+        "nvidia/nemotron-3-super-120b-a12b:free": {
+          "name": "OpenRouter: Nemotron 3 Super (preferred, effizient)",
+          "limit": {
+            "context": 262144,
+            "output": 65536
+          }
+        },
+        "gemma4:31b-cloud": {
+          "name": "Ollama Cloud: gemma4:31b-cloud",
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          }
+        },
+        "nvidia/nemotron-3-ultra-550b-a55b:free": {
+          "name": "OpenRouter: nvidia/nemotron-3-ultra-550b-a55b:free",
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "poolside/laguna-s-2.1:free": {
+          "name": "OpenRouter: poolside/laguna-s-2.1:free"
+        },
+        "z-ai/glm-5.2:free": {
+          "name": "OpenRouter: z-ai/glm-5.2:free",
+          "limit": {
+            "context": 262144,
+            "output": 65536
+          }
+        },
+        "google/gemma-4-12b": {
+          "name": "LM Studio: google/gemma-4-12b",
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          }
+        },
+        "nemotron-3-super": {
+          "name": "Ollama Cloud: nemotron-3-super"
+        },
+        "nemotron-3-ultra": {
+          "name": "Ollama Cloud: nemotron-3-ultra"
+        },
+        "google/gemma-4-31b-it:free": {
+          "name": "OpenRouter: google/gemma-4-31b-it:free",
+          "limit": {
+            "context": 262144,
+            "output": 32768
+          }
+        },
+        "nvidia/nemotron-3.5-lightning:free": {
+          "name": "OpenRouter: nvidia/nemotron-3.5-lightning:free",
+          "limit": {
+            "context": 1000000,
+            "output": 65536
+          }
+        },
+        "stealth/union-alpha": {
+          "name": "OpenRouter: stealth/union-alpha",
+          "limit": {
+            "context": 262144,
+            "output": 131072
+          }
+        }
+      }
+    }
+  },
+  "permission": {
+    "edit": {
+      ".env": "ask",
+      ".env.*": "ask",
+      ".env.backup": "ask",
+      "*": "allow"
+    }
+  }
+}

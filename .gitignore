@@ -1,0 +1,25 @@
+# AAMS .gitignore — Quelle: .agent.json → workspace.gitignore_patterns
+# Prinzip: WORKING/MEMORY/ wird NICHT ignoriert — ltm-index.md ist das geteilte
+# Kollaborations-Artefakt. Nur Binary-/Runtime-Artefakte werden ausgeschlossen.
+# Glob+Negation (statt Folder-Pattern) damit .gitkeep trackbar bleibt. (issue #10)
+
+# --- always ---
+WORKING/LOGS/*
+!WORKING/LOGS/.gitkeep
+WORKING/WORKPAPER/*.tmp
+
+# --- when_using_vector_store (ltm_mode=vector; bei markdown inert) ---
+WORKING/AGENT-MEMORY/*
+!WORKING/AGENT-MEMORY/.gitkeep
+WORKING/MEMORY/*.db
+WORKING/MEMORY/chroma/
+
+# --- Secrets (secrets_policy: nur .env / Secret-Manager) ---
+.env
+.env.*
+*.key
+*.pem
+
+# --- OS / Editor (hygiene) ---
+.DS_Store
+Thumbs.db
