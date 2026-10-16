@@ -65,6 +65,11 @@ für künftige Sessions startklar (`on_session_start` / `on_session_end`).
    **Vorlage** `WORKING/WHITEPAPER/TEMPLATE.md`. Ein konkretes `WH-NNN` entsteht erst
    bei stabilen Entscheidungen (autorfrei, mit Decision-Log).
 4. **LTM-Modus:** bleibt `markdown` (zero-dependency); `vector`/ChromaDB optional später.
+5. **AAMS-Doppelrolle (Fundament):** AAMS ist (A) unsere **Arbeitsgrundlage** in diesem
+   Repo (Workpaper/LTM/Whitepaper/Team) **und** (B) die **native Gedächtnis-Architektur
+   des Agenten** im Browser des Endnutzers (Session-IDs, Task-Trees, Audit-Logs in
+   IndexedDB + JSON-Export). Gleiche **Schema**, getrennte **Instanzen** (Dev ≠ Runtime).
+   → Festgeschrieben in `WH-001` (Decision-Record #1) als Fundament.
 
 ## file_protocol
 
@@ -80,16 +85,16 @@ für künftige Sessions startklar (`on_session_start` / `on_session_end`).
 | `WORKING/DIARY/2026-10.md` | create | Zeitindex (pointer-only) |
 | `.gitignore` | create | AAMS gitignore_patterns (always + vector) + Secrets/OS-Hygiene |
 | `WORKING/WHITEPAPER/TEMPLATE.md` | create | Whitepaper-Vorlage (Quelle der Wahrheit, autorfrei) |
+| `WORKING/WHITEPAPER/WH-001-ARCH-webgpu-single-agent-prototype.md` | create | Erstes stabiles WP (Kernarchitektur + **AAMS-Doppelrolle**) |
 | (git) | `git init -b main` + Initial-Commit | Repo wird Git-Repo (Entscheidung #2) |
 | `idee.md`, `opencode.json`, `.agent.json` | **nicht** ändern | Vorhandene Inhalte bleiben unangetastet |
 
 ## next_steps
 
 - [x] Code-Repo bestätigt (dieses Repo) · Git initiiert (`main`) · Whitepaper-Vorlage angelegt
-- [ ] Projekt-Scaffold: Stack/Tooling entscheiden (Dokumentation in `WORKING/GUIDELINES/`):
-      z. B. Vite + TypeScript, WebGPU/WebLLM-Integration, Code-Ordnerstruktur
+- [x] Erstes stabiles Whitepaper `WH-001` angelegt (Kernarchitektur + **AAMS-Doppelrolle** als Fundament)
+- [ ] Projekt-Scaffold: Stack/Tooling entscheiden (→ `WORKING/GUIDELINES/`):
+      Vorschlag Vite + TypeScript, WebGPU/WebLLM-Integration, Code-Ordnerstruktur (`/src`)
 - [ ] `WORKING/GUIDELINES/` mit Projekt-Konventionen befüllen (Code-Style, Lint, Test)
-- [ ] Erstes stabiles Whitepaper `WH-001-ARCH-*` anlegen, sobald die Architektur
-      stabil genug ist (aus `idee.md` + Entscheidungen, nach `TEMPLATE.md`)
 - [ ] **Session-Ende:** WP abschließen → `closed/`, Whitepaper aktuell halten,
       LTM-Inggest (ltm-index.md), READ-AGENT.md pflegen
