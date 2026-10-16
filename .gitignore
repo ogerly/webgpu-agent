@@ -23,3 +23,11 @@ WORKING/MEMORY/chroma/
 # --- OS / Editor (hygiene) ---
 .DS_Store
 Thumbs.db
+
+# --- Node / Vite ---
+node_modules/
+dist/
+
+# --- Lokale Model-Weights (WebLLM, groß — nie committen) ---
+public/models/
+*.gguf

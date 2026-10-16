@@ -86,6 +86,13 @@ für künftige Sessions startklar (`on_session_start` / `on_session_end`).
 | `.gitignore` | create | AAMS gitignore_patterns (always + vector) + Secrets/OS-Hygiene |
 | `WORKING/WHITEPAPER/TEMPLATE.md` | create | Whitepaper-Vorlage (Quelle der Wahrheit, autorfrei) |
 | `WORKING/WHITEPAPER/WH-001-ARCH-webgpu-single-agent-prototype.md` | create | Erstes stabiles WP (Kernarchitektur + **AAMS-Doppelrolle**) |
+| `index.html`, `package.json`, `tsconfig.json`, `vite.config.ts`, `README.md` | create | Vite+TS-Grundgerüst (local-first, `base:"./"`) |
+| `src/aams/{schema,store,io}.ts` | create | **AAMS(B)-Kern:** Schema, IndexedDB-Store, JSON-IO |
+| `src/agent/{agent,task-queue}.ts` | create | Agent-Core + Task-Queue (Sub-Task-Tree) |
+| `src/llm/{engine,webllm}.ts` | create | LLMEngine-Interface + WebLLM-Adapter (lazy) |
+| `src/ui/app.ts`, `src/main.ts` | create | UI-Verdrahtung + Entry-Point |
+| `WORKING/GUIDELINES/README.md` | create | Projekt-Konventionen (Doppelrolle, Stack, Style) |
+| `node_modules/`, `dist/` | gitignore | Build-/Runtime-Artefakte (nie committen) |
 | (git) | `git init -b main` + Initial-Commit | Repo wird Git-Repo (Entscheidung #2) |
 | `idee.md`, `opencode.json`, `.agent.json` | **nicht** ändern | Vorhandene Inhalte bleiben unangetastet |
 
@@ -93,8 +100,10 @@ für künftige Sessions startklar (`on_session_start` / `on_session_end`).
 
 - [x] Code-Repo bestätigt (dieses Repo) · Git initiiert (`main`) · Whitepaper-Vorlage angelegt
 - [x] Erstes stabiles Whitepaper `WH-001` angelegt (Kernarchitektur + **AAMS-Doppelrolle** als Fundament)
-- [ ] Projekt-Scaffold: Stack/Tooling entscheiden (→ `WORKING/GUIDELINES/`):
-      Vorschlag Vite + TypeScript, WebGPU/WebLLM-Integration, Code-Ordnerstruktur (`/src`)
-- [ ] `WORKING/GUIDELINES/` mit Projekt-Konventionen befüllen (Code-Style, Lint, Test)
+- [x] **Scaffold (Vite + TS):** `/src` (aams/ agent/ llm/ ui/), WebLLM-Adapter (lazy), Task-Queue,
+      AAMS(B)-Store (IndexedDB), JSON-IO, `WORKING/GUIDELINES/` — `npm run typecheck` ✅ + `npm run build` ✅
+- [ ] **LLM-Planer:** Task-Zerlegung via LLM (ersetzt Platzhalter) + echte Ausführung im Loop
+- [ ] **Helfer-Modelle** (OCR / Translation / Web-Fetch) via Transformers.js, on-demand, VRAM danach frei
+- [ ] **Tests** (Vitest) für `aams/*` + `task-queue` (Schema, Task-Status-Maschine, JSON-Roundtrip)
 - [ ] **Session-Ende:** WP abschließen → `closed/`, Whitepaper aktuell halten,
       LTM-Inggest (ltm-index.md), READ-AGENT.md pflegen

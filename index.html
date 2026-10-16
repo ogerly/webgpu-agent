@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>webgpu-agent — Local-First WebGPU Agent (AAMS-nativ)</title>
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, -apple-system, sans-serif; }
+      body { max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; }
+      h1 { font-size: 1.4rem; }
+      h2 { font-size: 1.05rem; }
+      .toolbar { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; align-items: center; }
+      button, input[type="file"] { padding: .45rem .8rem; }
+      label { cursor: pointer; padding: .45rem .8rem; border: 1px solid #8884; border-radius: 6px; }
+      #status { color: #777; font-size: .9rem; margin-top: 1.25rem; min-height: 1.2em; }
+      ul { padding-left: 1.2rem; }
+      li { margin: .25rem 0; }
+      .badge { font-size: .72rem; opacity: .65; }
+      small { opacity: .6; }
+    </style>
+  </head>
+  <body>
+    <h1>🛰 webgpu-agent <span class="badge">local-first · WebGPU · AAMS-nativ</span></h1>
+    <p class="badge">Scaffold (WH-001): AAMS(B)-Store in IndexedDB · Task-Queue · WebLLM (lazy)</p>
+
+    <div id="app">
+      <p id="session-id">…</p>
+      <div class="toolbar">
+        <button id="plan">+ Aufgabe planen</button>
+        <button id="run">▶ Nächster Schritt</button>
+        <button id="export">⬇ JSON-Export</button>
+        <label>⬆ Import<input type="file" id="import" accept="application/json,.json" hidden /></label>
+      </div>
+      <div id="tasks"></div>
+    </div>
+
+    <div id="status"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

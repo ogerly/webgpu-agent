@@ -1,0 +1,20 @@
+{
+  "name": "webgpu-agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Local-First WebGPU Agent (AAMS-nativ) — WH-001",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mlc-ai/web-llm": "^0.2.79"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0"
+  }
+}
