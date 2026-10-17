@@ -1,24 +1,24 @@
 /**
- * Entry-Point (Modell-Pool + KERN-Prototyp + Agent).
- * Boot: AAMS-B-Store (laden/neu) → Modell-Pool (lazy) → Agent → KERN-Supervisor → UI.
+ * Entry-Point (WP-UI-DASH): Boot + Event-Router (UI ↔ Agent über WGA).
+ *
+ * Boot: AAMS-B-Store (laden/neu) → WGA (UI) → Modell-Pool → Agent → KERN-Supervisor → Verdrahtung.
+ *
+ * WP-UI-DASH §2.5/§3.5: die UI weiß nichts vom Agenten, der Agent nichts vom DOM.
+ * Dieser Router übersetzt alle Ereignisse (Pool/Agent/KERN/Reset) in WGA-Aufrufe
+ * (ersetzt den alten ~100-Zeilen-onEvent-Switch + die #status-Zeile).
  */
+import "./ui/theme.css";
 import { aamsStore } from "./aams/store";
-import { newSessionId } from "./aams/reset";
+import { newSessionId, resetSession } from "./aams/reset";
 import type { AAMSDocument } from "./aams/schema";
-import { ModelPool, type RoleId } from "./llm/pool";
+import { downloadJSON, parseJSON } from "./aams/io";
+import { extractHTMLArtifact } from "./artifact/extract";
 import { catalogModel } from "./llm/catalog";
+import { ModelPool, type RoleId } from "./llm/pool";
 import { Agent, pushAudit } from "./agent/agent";
 import { KernSupervisor } from "./kern/supervisor";
-import {
-  renderSession,
-  renderMemory,
-  renderAudit,
-  renderKern,
-  renderPool,
-  renderProgress,
-  setRoleState,
-  wire,
-} from "./ui/app";
+import { WGA } from "./ui/api";
+import { wire } from "./ui/wire";
 
 function newSession(title: string): AAMSDocument {
   const now = Date.now();
@@ -38,127 +38,224 @@ function newSession(title: string): AAMSDocument {
   };
 }
 
-function setProgress(msg: string): void {
-  const el = document.getElementById("status");
-  if (el) el.textContent = msg;
-}
+const label = (id?: string): string => (id ? (catalogModel(id)?.label ?? id) : "–");
+const roleLabel = (r?: string): string => (r === "waechter" ? "Wächter" : "Planer");
 
 async function boot(): Promise<void> {
-  const app = document.getElementById("app");
-  if (!app) throw new Error("#app nicht gefunden");
+  const root = document.getElementById("app");
+  if (!root) throw new Error("#app nicht gefunden");
 
   // 1) AAMS-B-Store: aktive Session laden, sonst neue anlegen.
   const stored = await aamsStore.load();
   const doc = stored ?? newSession("Neue Session");
   await aamsStore.save(doc);
 
-  // 2) Modell-Pool (WP-BENCH-IMPL): Wächter resident + Planer on-demand.
-  //    Lazy: WebLLM/Weights werden erst bei ensureWaechter()/ensurePlanner() geladen.
-  const renderAll = (): void => {
-    renderSession(app, doc);
-    renderMemory(app, doc);
-    renderAudit(app, doc);
-  };
+  // 2) WGA (UI): Zustand + Hooks.
+  const wga = new WGA(root);
+  wga.vramBudget(4096);
+  wga.session(doc.session.id, doc.session.title, doc.session.status);
+  wga.seedLogs(doc.session.auditLog);
+  wga.tasks(doc.session.tasks);
+  wga.memory(doc.session.memory);
+  wga.loop(false);
+  wga.context(0, 4096);
+
+  // 3) Modell-Pool: Events → WGA (Anzeige) + Audit (Wahrheit).
   const pool = new ModelPool({
     onEvent: (e) => {
-      const label = (m?: string): string => (m ? (catalogModel(m)?.label ?? m) : "");
-      const roleLabel = (r?: string): string => (r === "waechter" ? "Wächter" : "Planer");
-
-      // 1) Download-Fortschritt → saubere Anzeige im Panel ①
-      if (e.action === "progress") {
-        const role = (e.note as RoleId) ?? "planer";
-        setRoleState(app, role, "loading");
-        renderProgress(app, pool.getProgress());
-        return;
+      const role = (e.note as RoleId) ?? "planer";
+      switch (e.action) {
+        case "select":
+          pushAudit(doc, "pool.select", undefined, `${roleLabel(e.note)}: ${label(e.model)}`);
+          wga.log("session", "pool.select", `${roleLabel(e.note)}: ${label(e.model)}`);
+          return;
+        case "load":
+          pushAudit(doc, "llm.load", undefined, `model=${e.model} role=${e.note}`);
+          wga.log("llm", "llm.load", `${roleLabel(e.note)}: ${label(e.model)}`);
+          wga.live(`${roleLabel(e.note)} lädt …`, label(e.model));
+          return;
+        case "progress": {
+          const p = pool.getProgress();
+          if (p) wga.progress(role, p, catalogModel(p.model)?.vramMB ?? 0);
+          return;
+        }
+        case "ready":
+          pushAudit(doc, "llm.ready", undefined, `model=${e.model} role=${e.note}`);
+          wga.ready(role, label(e.model));
+          wga.log("llm", "llm.ready", `${roleLabel(e.note)}: ${label(e.model)} bereit`);
+          wga.live(null);
+          return;
+        case "unload":
+          pushAudit(doc, "llm.unload", undefined, `model=${e.model}`);
+          wga.unloaded(role);
+          wga.log("llm", "llm.unload", `${label(e.model)} — VRAM frei`);
+          wga.live(null);
+          return;
+        case "fallback":
+          pushAudit(doc, "llm.fallback", undefined, `${label(e.model)} nicht ladbar — nächstes Modell (${e.note})`);
+          wga.log("guard", "llm.fallback", `${label(e.model)} → nächstes Modell`);
+          return;
+        case "degraded":
+          pushAudit(doc, "llm.degraded", undefined, e.note ?? "Planer nicht ladbar");
+          wga.degraded(role, e.note ?? "Planer nicht ladbar");
+          wga.log("guard", "llm.degraded", "DEGRADED: Planer nicht ladbar — Wächter übernimmt");
+          wga.live(null);
+          return;
+        case "error":
+        default:
+          pushAudit(doc, "llm.error", undefined, e.note ?? label(e.model));
+          wga.error(role, e.note ?? "Fehler");
+          wga.log("error", "llm.error", e.note ?? "Fehler");
+          wga.live(null);
       }
-
-      // 2) Alle übrigen Events → Audit (Beobachtung!)
-      if (e.action === "ready") {
-        renderPool(app, pool);
-        renderProgress(app, null);
-        renderAll();
-        setProgress(`${roleLabel(e.note)} bereit: ${label(e.model)}`);
-        return;
-      }
-      const withRole = e.action === "select" || e.action === "load" || e.action === "unload";
-      const auditNote = [
-        e.model ? `model=${e.model}` : null,
-        withRole && e.note ? `role=${e.note}` : null,
-        !withRole && e.note ? e.note : null,
-      ]
-        .filter(Boolean)
-        .join(" ");
-      pushAudit(doc, e.action === "select" ? "pool.select" : `llm.${e.action}`, undefined, auditNote || undefined);
-
-      if (e.action === "select") {
-        renderPool(app, pool);
-        renderAll();
-        setProgress(`${roleLabel(e.note)} gewählt: ${label(e.model)}`);
-        return;
-      }
-      if (e.action === "load") {
-        setRoleState(app, (e.note as RoleId) ?? "planer", "loading");
-        setProgress(`${roleLabel(e.note)}: lade ${label(e.model)} …`);
-        renderAll();
-        return;
-      }
-      if (e.action === "unload") {
-        renderPool(app, pool);
-        renderProgress(app, null);
-        renderAll();
-        setProgress(`${label(e.model)} entladen — VRAM frei`);
-        return;
-      }
-      if (e.action === "fallback") {
-        setProgress(`Fallback: ${label(e.model)} nicht ladbar → nächstes Modell …`);
-        renderAll();
-        return;
-      }
-      if (e.action === "degraded") {
-        renderPool(app, pool);
-        renderProgress(app, null);
-        renderAll();
-        setProgress(`DEGRADED: Planer nicht ladbar — Wächter übernimmt (${e.note ?? ""})`);
-        return;
-      }
-      // error
-      renderPool(app, pool);
-      renderProgress(app, null);
-      renderAll();
-      setProgress(`Fehler: ${e.note ?? label(e.model)}`);
     },
   });
 
-  // 3) Agent (Panel ③) — echter Loop (WP-BENCH-IMPL): Planer-JSON + Ausführung.
+  // 4) Agent: Callbacks → WGA.
   const agent = new Agent(doc, pool, {
-    onStatus: setProgress,
+    onStatus: (msg) => wga.log("task", "agent", msg),
     onTaskChange: () => {
-      renderSession(app, doc);
-      renderMemory(app, doc);
-      renderAudit(app, doc);
+      wga.tasks(doc.session.tasks);
+      wga.memory(doc.session.memory);
     },
+    onWork: (working) => {
+      if (working) wga.live("führt Aufgabe aus …", "Agent");
+      else wga.live(null);
+    },
+    // Workflow + Ergebnis **im Chatfenster** (Ziel #1): Plan, je Schritt, Abschluss.
+    onChat: (text, badge) => wga.say("agent", text, badge ?? "waechter"),
   });
 
-  // 4) KERN-Supervisor (Panel ② + ④): mechanischer Loop + Tokenwächter.
+  // 5) KERN-Supervisor: Ticks → WGA.
   const kern = new KernSupervisor(doc, 1500, 600, 0.8, {
     onTick: (info) => {
-      renderKern(app, info);
-      renderSession(app, doc);
-      renderMemory(app, doc);
-      renderAudit(app, doc);
+      wga.context(info.tokens, info.limit, info.threshold);
+      if (info.flushed) {
+        wga.log("guard", "tokenwatcher.flush", info.reason ?? "Context fast voll → in AAMS-B gesichert");
+      }
+      wga.tasks(doc.session.tasks);
+      wga.memory(doc.session.memory);
     },
   });
 
-  wire(app, doc, agent, kern, pool);
-  renderPool(app, pool);
-  renderSession(app, doc);
-  renderMemory(app, doc);
-  renderAudit(app, doc);
-  setProgress(
-    "Bereit. ① Modell wählen + laden (Downloadstand live sichtbar) · ③ Aufgabe planen · ② KERN-Loop."
+  // 6) Hooks (UI → Agent) — hier treffen sich WGA und echte Systemteile.
+  wga.onSend = (text) => void handleChat(text, agent, wga);
+  wga.onLoop = (on) => {
+    if (on) kern.start();
+    else kern.stop();
+    wga.loop(on);
+    wga.log("session", "kern.loop", on ? "KERN-Loop gestartet" : "KERN-Loop gestoppt");
+  };
+  wga.onStep = () => {
+    wga.live("führe nächsten Schritt aus …", "Agent");
+    void agent.runStep().finally(() => wga.live(null));
+  };
+  wga.onExport = () => {
+    downloadJSON(doc);
+    wga.log("session", "session.export", "JSON-Export gestartet");
+  };
+  wga.onImport = (file) => void handleImport(file, doc, wga);
+  wga.onReset = () => void handleReset(doc, wga, kern);
+  // V4 Schritt 1: User-Aktionen auf Artefakte (Vorschau/Download) → Audit (AAMS-B).
+  wga.onArtifact = (taskId, action) => {
+    wga.log("task", `artifact.${action}`, "Artefakt-Aktion (Vorschau/Download)");
+    void (async () => {
+      const t = doc.session.tasks.find((x) => x.id === taskId);
+      const a = t ? extractHTMLArtifact(t.result) : null;
+      pushAudit(doc, `artifact.${action}`, taskId, a ? `html · ${a.filename} · ${a.bytes} B` : "–");
+      await aamsStore.save(doc);
+    })();
+  };
+
+  // 7) Verdrahtung (Controls) + Chat-Aufmacher (Agent fragt nach der neuen Aufgabe).
+  wire(wga, pool);
+  wga.say(
+    "agent",
+    "Hallo! Ich bin dein lokaler Agent (WebGPU, AAMS). Was ist die neue Aufgabe? " +
+      "Beschreib kurz, was ich erledigen soll — ich zerlege sie in Teilaufgaben (Planer) " +
+      "und starte danach die Ausführung. Du siehst jeden Schritt hier im Chat, " +
+      "am Ende bekommst du das Ergebnis. „Was ist dein aktueller Stand?“ zeigt dir den Fortschritt.",
+    "waechter"
   );
 }
 
+/** Chat-Runde: User-Nachricht → Agent.chat() → Antwort (Badge) — WP-UI-DASH §3.3. */
+async function handleChat(text: string, agent: Agent, wga: WGA): Promise<void> {
+  wga.say("user", text);
+  wga.chatState("denkt …");
+  wga.typing(true);
+  try {
+    const reply = await agent.chat(text);
+    wga.say("agent", reply.text, reply.badge);
+  } catch (err) {
+    wga.say("sys", `Fehler: ${(err as Error).message}`);
+  } finally {
+    wga.typing(false);
+    wga.chatState("bereit");
+  }
+}
+
+/** Import: echte Schema-Prüfung (parseJSON) → Session-Objekt in Place aktualisieren. */
+async function handleImport(file: File, doc: AAMSDocument, wga: WGA): Promise<void> {
+  try {
+    const parsed = parseJSON(await file.text());
+    Object.assign(doc.session, parsed.session);
+    wga.session(doc.session.id, doc.session.title, doc.session.status);
+    wga.tasks(doc.session.tasks);
+    wga.memory(doc.session.memory);
+    wga.seedLogs(doc.session.auditLog);
+    wga.log("session", "session.import", `Import: ${file.name}`);
+  } catch (err) {
+    wga.say("sys", `Import fehlgeschlagen: ${(err as Error).message}`);
+  }
+}
+
+/**
+ * Reset (WP-SESS-RESET, Semantik unverändert — WP-UI-DASH §4.7):
+ * Confirm → KERN-Stop → Safety-Export → resetSession (Rollback bei Fehler) → Render.
+ */
+async function handleReset(doc: AAMSDocument, wga: WGA, kern: KernSupervisor): Promise<void> {
+  const s = doc.session;
+  const ok = confirm(
+    "Gedächtnis KOMPLETT zurücksetzen?\n\n" +
+      `Wird gelöscht: ${s.tasks.length} Tasks · ${s.auditLog.length} Audit-Einträge · ` +
+      `${s.memory.length} Memory-Einträge · ${s.knowledge.length} Wissen.\n` +
+      "Der KERN-Loop wird gestoppt. Ein Safety-Export (JSON) wird automatisch ausgelöst."
+  );
+  if (!ok) return;
+  try {
+    kern.reset(); // 1) Timer stoppen + tokens/step nullen (keine Waisen-Write)
+    downloadJSON(doc, `aams-safety-${doc.session.id}.json`); // 2) Safety-Export (alter Zustand)
+    wga.log("session", "session.reset", "Zurücksetzen … (Safety-Export ausgelöst)");
+    const report = await resetSession(doc); // 3) In-Place-Reset + Persist (Rollback bei Fehler)
+    // 4) UI neu — inkl. Chat-Spur über den Reset.
+    wga.session(doc.session.id, doc.session.title, doc.session.status);
+    wga.tasks(doc.session.tasks);
+    wga.memory(doc.session.memory);
+    wga.seedLogs(doc.session.auditLog);
+    wga.context(0, 4096);
+    wga.loop(false);
+    wga.live(null);
+    wga.say(
+      "sys",
+      `Gedächtnis zurückgesetzt → neue Session ${report.newId} (alter Stand als Safety-Export gesichert).`
+    );
+  } catch (err) {
+    // Rollback hat den alten Zustand wiederhergestellt → einfach neu rendern (kein „zurückgesetzt“!).
+    wga.tasks(doc.session.tasks);
+    wga.memory(doc.session.memory);
+    wga.seedLogs(doc.session.auditLog);
+    wga.say("sys", `Fehler: ${(err as Error).message}`);
+  }
+}
+
 boot().catch((e: unknown) => {
-  setProgress(`Fehler: ${e instanceof Error ? e.message : String(e)}`);
+  const msg = e instanceof Error ? e.message : String(e);
+  const box = document.querySelector<HTMLDivElement>("#msgs");
+  if (box) {
+    const d = document.createElement("div");
+    d.className = "m sys";
+    d.textContent = `Boot fehlgeschlagen: ${msg}`;
+    box.appendChild(d);
+  }
 });

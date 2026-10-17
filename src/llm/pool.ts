@@ -36,6 +36,23 @@ export interface PoolProgress {
 /** Rollen-ID (wird in Events als `note` mitgegeben). */
 export type RoleId = "waechter" | "planer";
 
+/**
+ * Fortschrittsstufe aus dem WebLLM-Progress-Text (WP-UI-DASH §3.3).
+ *
+ * Ground-Truth (WebLLM 0.2.86): Download = „Fetching param cache[…]: … MB fetched“ (0–100 %),
+ * danach „Creating model …“ / „Compiling shaders / finish loading on GPU“.
+ * Heuristik ist bewusst **isoliert + testbar** (im Exemplar inline-Regex, WP-UI-DASH §4.8);
+ * Fallback: Stufe 1 (reiner %-Balken bleibt trotzdem korrekt).
+ */
+export function stageFromText(text: string, pct: number): number {
+  if (pct >= 100) return 3;
+  const t = (text ?? "").toLowerCase();
+  if (/shader|compil|pipeline|finish/.test(t)) return 2;
+  if (/cache|creating model|loading model/.test(t)) return 1;
+  if (/fetch|download/.test(t)) return 0;
+  return 1;
+}
+
 export interface PoolEvent {
   action:
     | "select"

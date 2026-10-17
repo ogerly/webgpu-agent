@@ -8,10 +8,10 @@
  *  - **Fehler-sicher:** IndexedDB-Speichern schlägt fehl → In-Memory-Zustand wird
  *    zurückgerollt (kein halber Zustand), Fehler wird an den Aufrufer geworfen.
  *  - **In-Place:** das gleiche Dokument-Objekt wird mutiert (Pattern wie Import in
- *    `src/ui/app.ts`) → keine hängenden Referenzen in Agent/KERN/UI.
+ *    `src/main.ts`) → keine hängenden Referenzen in Agent/KERN/UI.
  *
  * **Nicht** Teil des Resets: LLM-Engine/VRAM, WebLLM-Weights-Cache, Repo-Dateien.
- * (Safety-Export + KERN-Stop erfolgen in der Orchestrierung, s. `src/ui/app.ts`.)
+ * (Safety-Export + KERN-Stop erfolgen in der Orchestrierung, s. `src/main.ts`.)
  */
 import type { AAMSDocument, AAMSSession } from "./schema";
 import { aamsStore } from "./store";
