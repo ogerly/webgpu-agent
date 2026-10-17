@@ -8,5 +8,14 @@ import { defineConfig } from "vite";
 export default defineConfig({
   base: "./",
   server: { port: 5173 },
-  build: { target: "es2022" },
+  build: {
+    target: "es2022",
+    rollupOptions: {
+      // Multi-Page: App + Doku-Unterseite (WP-APP-DOKU). Beide laufen statisch (relative Pfade).
+      input: {
+        main: "index.html",
+        doku: "doku.html",
+      },
+    },
+  },
 });

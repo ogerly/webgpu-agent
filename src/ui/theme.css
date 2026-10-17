@@ -44,6 +44,8 @@ button, select, textarea, input { font: inherit; color: inherit; }
   display: grid; place-items: center; font-size: 15px;
 }
 .tag { font-size: 11px; color: var(--mut); border: 1px solid var(--line); padding: 2px 8px; border-radius: 99px; }
+a.tag { color: var(--txt); text-decoration: none; cursor: pointer; }
+a.tag:hover { color: var(--acc); border-color: var(--acc); }
 .sess { color: var(--mut); font-family: var(--mono); font-size: 12px; }
 .sess b { color: var(--ok); font-weight: 600; }
 .spacer { flex: 1; }

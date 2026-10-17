@@ -6,7 +6,7 @@
 > **Screenshot:** `src/public/images/screenshot.png` (für X, WhatsApp, Telegram, Reddit anhängen).
 > **Fix-Links (überall gleich):**
 > - **Demo:** `https://huggingface.co/spaces/ogerl/webgpu-agent`
-> - **Doku:** `https://ogerl-webgpu-agent.static.hf.space/dokumentation.html` (Warum/Ziel/Stand/Forschung/Probleme)
+> - **Doku:** `https://ogerl-webgpu-agent.static.hf.space/doku.html` (Unterseite der App — Warum/Ziel/Stand/Forschung/Probleme)
 > - **Code:** `https://github.com/ogerly/webgpu-agent`
 
 ---

@@ -25,6 +25,7 @@ Eine **Dokumentationsseite für das Beispiel (Projekt)** anlegen, die erklärt:
 | `website/dokumentation.html` | ✅ Neue Seite (gemeinsames `style.css`, hell, responsiv): **§1** Was ist das · **§2 Warum** (Datensouveränität, lokale Inferenz, Autonomie, Forschungsfrage) · **§3 Ziel** (Kernziel + 6 Forschungsziele + Nicht-Ziele) · **§4 Stand** (umgesetzt vs. offen, mit Status-Badges) · **§5 Forschungsansatz** (Prinzipien „messen, nicht raten", Doku-Kette AAMS, WH-002-Protokoll inkl. Level-/VRAM-Tabellen, 6 Forschungsfragen, V1–V5) · **§6 Offene Probleme** (10 Punkte, je mit „warum" + „worauf wir suchen" — extra Sektion) · **§7 Wächter-Modell** (Ansatz, Stufen 0–5 mit Abbruchkriterien, Sinnhaftigkeit/erwarteter Nutzen, Probleme) · **§8 Links** |
 | Navigation | ✅ „Doku"-Link auf allen 7 Website-Seiten |
 | Live | ✅ Space-Upload (`dokumentation.html` + `style.css`) → `https://ogerl-webgpu-agent.static.hf.space/dokumentation.html` |
+| **Hosting (geändert, WP-APP-DOKU)** | ✅ Doku ist jetzt eine **Unterseite der App**: `doku.html` (Projekt-Root, App-Theme) + Vite-Multi-Page (`dist/doku.html`) + 📖-Link in der App-Topbar → **LIVE** `https://ogerl-webgpu-agent.static.hf.space/doku.html` (verifiziert). Die Website-Kopie bleibt als Referenz (nicht mehr gepflegt). |
 | README / social.md | ✅ Doku-Link ergänzt |
 
 **Quellenlage:** alle Fakten aus `idee.md`, WH-001 (Invarianten, AAMS-Doppelrolle, DR #5),
