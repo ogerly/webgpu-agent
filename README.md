@@ -65,8 +65,12 @@ src/
 
 > **⚠ Status: BEISPIEL & FORSCHUNG — kein verbindlicher Plan.**
 >
-> **Erster Deploy (2026-10-17):** `https://ogerly.github.io/webgpu-agent/` (GitHub Pages, public) ·
-> Quell-Stand: `https://github.com/ogerly/webgpu-agent` · HuggingFace Space: ausstehend (Token prüfen).
+> **Erster Deploy (2026-10-17) — vorbereitet, Blocker offen:**
+> Quell-Stand: `https://github.com/ogerly/webgpu-agent` (main + `gh-pages`-Branch mit Build) ·
+> Ziel-URL: `https://ogerly.github.io/webgpu-agent/` ·
+> **Blocker:** (1) GitHub-Account **locked (billing)** → Deploy-Workflow kann nicht starten
+> (Fallback: Settings → Pages → Branch `gh-pages`) · (2) HF-Token **401** (neu generieren: Write).
+> Details + nächste Aktionen: `WORKING/WORKPAPER/WP-2026-10-17-DEPLOY-webgpu-agent-deploy-optionen.md` §4.
 >
 > Der Agent läuft 100 % clientseitig: „Deploy" = **statische App + Modelle an die Browser
 > liefern** (kein Backend). Optionen (lokaler Server, statisches Hosting, PWA, selbst gehostete

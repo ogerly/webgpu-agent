@@ -1,7 +1,7 @@
 # WP-2026-10-17 — DEPLOY: Deploy-Optionen für den WebGPU-Agenten
 
 > **Typ:** Workpaper (Arbeitsdokument, **kein** Whitepaper)
-> **Status:** open · **⚠ BEISPIEL & FORSCHUNG** (Forschungsdokumentation — **kein verbindlicher Plan**) · **Erster Deploy (GitHub Pages) umgesetzt, 2026-10-17** (Abschnitt 4)
+> **Status:** open · **⚠ BEISPIEL & FORSCHUNG** (Forschungsdokumentation — **kein verbindlicher Plan**) · **Erster Deploy (2026-10-17): vorbereitet, Blocker = GitHub-Billing-Sperre + HF-Token 401** (Abschnitt 4)
 > **Bezug:** WH-001 (local-first, keine Cloud) · WH-002 (≤ 4 GB VRAM) · WP-…-PROPOSAL (L2: offline nach Setup)
 > **Lebenszyklus:** Forschungsergebnisse → nur **strukturelle** Entscheidungen als Decision Record in WH-001. Danach → `closed/`.
 > **README:** als „Beispiel & Forschung" gekennzeichnet.
@@ -50,16 +50,22 @@ jede Option unten ist nur ein **Weg, die Dateien zum Browser zu bringen**.
 6. **Sicherheit/Hosting:** CSP-Header beim Hosting, keine Secrets in der App (Invariant),
    Web-Zugriff nur via V2-Brücke (untrusted-Daten-Regel aus WP-…-PROPOSAL §V2).
 
-## 4. Erster Deploy (umgesetzt, 2026-10-17)
+## 4. Erster Deploy (2026-10-17 — vorbereitet, **Blocker: GitHub-Billing**)
 
-> **Status: ERSTER DEPLOY LÄUFT** — Option „Statisches Hosting" (GitHub Pages).
+> **Status:** alles vorbereitet · **Blocker 1:** GitHub-Account ist **locked (billing issue)** → Actions können nicht starten (Job-Annotation: „account is locked due to a billing issue") · **Blocker 2:** HF-Token wird mit **401 abgelehnt** (ungültig/abgelaufen).
 
 | Schritt | Ergebnis |
 |---------|----------|
-| Quell-Stand GitHub | `https://github.com/ogerly/webgpu-agent` (main, `.env` **nicht** committet — gitignored; Tokens nur in `.env`) |
-| Deploy-Workflow | `.github/workflows/deploy-pages.yml`: `npm ci` + `typecheck` + `build` → Publish `dist/` (keine Secrets im Bundle) |
-| **Live-URL** | **`https://ogerly.github.io/webgpu-agent/`** (Pages `build_type=workflow`, public) |
-| HuggingFace Space | **ausstehend:** HF-Token in `.env` wird mit **401 abgelehnt** (ungültig/abgelaufen) → Token neu generieren (hf.co/settings/tokens, Berechtigung **Write**) → Space `webgpu-agent` (Static) anlegen + `dist/` via LFS-API hochladen |
+| Quell-Stand GitHub | ✅ `https://github.com/ogerly/webgpu-agent` (main; `.env` **nicht** committet — gitignored, Tokens nur in `.env`) |
+| Deploy-Workflow | ✅ `.github/workflows/deploy-pages.yml`: `npm ci` + `typecheck` + `build` → Publish `dist/` — **wartet auf freigegebenes Konto** |
+| Fallback-Branche | ✅ `gh-pages` mit fertigem Build (index.html + assets) — **manuell** aktivierbar: GitHub → Settings → Pages → Source = Branch `gh-pages`, Path `/` (funktioniert **ohne** Actions) |
+| GitHub Pages | ✅ aktiviert (`https://ogerly.github.io/webgpu-agent/`, `build_type=workflow`); per API nicht auf Legacy umstellbar (404/422: „Deactivating … not allowed") |
+| HuggingFace Space | ⛔ Token **401** → neu generieren (hf.co/settings/tokens, Berechtigung **Write**) → dann: Space `webgpu-agent` (Static) + `dist/` via LFS-API |
+
+**Nächste Aktionen (User):**
+1. **GitHub-Billing klären** (github.com/billing bzw. GitHub-Mail zur Sperrung) → danach Workflow re-runnen (Actions → Re-run) oder einfach pushen → Site live unter `https://ogerly.github.io/webgpu-agent/`
+   — *oder* den Fallback manuell: Settings → Pages → Branch `gh-pages` (Path `/`).
+2. **HF-Token neu generieren** (Write) in `.env` legen → ich lege den Static-Space an und lade `dist/` hoch.
 
 **Bekannt / erwartet (Forschungsfragen 1–3):**
 - Weights (≈ 945 MB Wächter / ≈ 2,3 GB Planer) kommen **beim ersten Laden** vom CDN (Setup, L2 erlaubt) — danach: Browser-Cache.
