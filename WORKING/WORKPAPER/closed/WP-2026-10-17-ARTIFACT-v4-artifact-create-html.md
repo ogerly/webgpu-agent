@@ -1,6 +1,6 @@
 # WP-2026-10-17-ARTIFACT — V4 Schritt 1: artifact.create (HTML: Vorschau + Download)
 
-**Status:** open (2026-10-17 — **umgesetzt**, typecheck+build ✅, **Browser-Checkliste offen**)
+**Status:** closed ✅ (2026-10-17 — **V4 Schritt 1 umgesetzt** (typecheck+build ✅), **live im Einsatz**; Browser-Checkliste §6 als erledigt gewertet (User: „alle 4") · **Wahrheiten gesichert:** WH-001 **DR #5** + WH-002 **DR #10** · **Schritt 2 (ZIP/mehrdateiig/docx/xlsx) = eigener WP** (Kandidat; verfolgt in WP-PROPOSAL §V4 + Doku „Forschungsziel 5"))
 **BY:** — / opencode / qwen/qwen3.8-27b / local
 **Continued from:** `WP-2026-10-17-PROPOSAL-opfs-pyodide-extension-hermes-lite.md` (V4 = „angepasst übernommen")
 **TOPIC:** ARTIFACT (neu im topic_registry) · **Sub-Topic:** V4-STEP1
@@ -61,6 +61,13 @@ als Datei abrufbar** — ohne Schema-Änderung.
   „Nur das übernehmen, was ein Szenario braucht").
 - **Vorschau nicht-HTML-Artefakte** (nur Text-Ansicht).
 - **Dateiname aus Kontext** (z. B. `blog.html` statt `index.html`).
+
+## Schluss (2026-10-17)
+
+- **User:** „Alle 4" (Freigabe des Schlusses von UI-DASH, BENCH-IMPL, ARTIFACT, WEBSITE).
+- **Wahrheiten gesichert (vor Schluss):** WH-001 **DR #5** (Artefakte abgeleitet, Sandbox ohne `allow-same-origin`) + WH-002 **DR #10** (HTML-Aufgaben dateibeweisbar) · Doku §5 (Problem P6 Datei-Output).
+- **Nichts verloren:** **Schritt 2 (ZIP/mehrdateiig, docx/xlsx, Dateinamen aus Kontext) = eigener WP** — Kandidat bleibt in WP-PROPOSAL §V4 (Reihenfolge V4→V1→V5→V3→V2) + Doku „Forschungsziel 5".
+- → `closed/`
 
 ## verweise
 

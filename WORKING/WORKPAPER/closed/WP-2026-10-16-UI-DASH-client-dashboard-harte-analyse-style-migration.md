@@ -1,6 +1,6 @@
 # WP-2026-10-16-UI-DASH — Harte Analyse: Client-Dashboard vs. Exemplar (client-index-example.html)
 
-**Status:** open
+**Status:** closed ✅ (2026-10-17 — umgesetzt + **live im Einsatz**; User-Freigabe des Schlusses („alle 4"); Browser-Checkliste §8 als erledigt gewertet (App ist live und vom User genutzt) · **Wahrheiten gesichert:** WH-001 (Invarianten, Chat/Artefakt-DR #5) + README)
 **BY:** — / opencode / qwen/qwen3.8-27b / local
 **Continued from:** `WP-2026-10-16-BENCH-IMPL-modell-pool-echter-agent-loop.md` (UI-Grundlage)
 **TOPIC:** UI · **Sub-Topic:** DASH
@@ -447,6 +447,13 @@ Dev-Server-Rauchtest ✅ (Page + theme.css + WGA werden served). **Browser-Check
 
 - [x] Fragen 1–2 vom User entschieden (Planer bestimmt Teilaufgaben · Demo-Modus weg)
 - [x] Umsetzung Einheit 1 + 2 (s. §6) — typecheck + build ✅
-- [ ] **User:** Browser-Checkliste §8 abhaken (`npm run dev` → http://localhost:5173)
-- [ ] danach: WP schließen (→ `closed/`) + README-Status aktualisieren (Steht bereits, siehe README)
-- [ ] Folge-Einheit (WH-002, **nicht** dieses WP): „Maschine“-Panel + Benchmark-Seite + erster L1-Testlauf
+- [x] **User:** Browser-Checkliste §8 — **als erledigt gewertet (2026-10-17):** App ist live (`https://huggingface.co/spaces/ogerl/webgpu-agent`) und vom User in Nutzung (Screenshot, Doku-Abnahme)
+- [x] danach: WP schließen (→ `closed/`) + README-Status aktualisieren — **erledigt (2026-10-17)**
+- [ ] Folge-Einheit (WH-002, **nicht** dieses WP): „Maschine“-Panel + Benchmark-Seite + erster L1-Testlauf → **bleibt als Benchmark-Folge-Einheit** (README „Nächste Schritte" + WP-WH002-CHANGE)
+
+## Schluss (2026-10-17)
+
+- **User:** „Alle 4" (Freigabe des Schlusses von UI-DASH, BENCH-IMPL, ARTIFACT, WEBSITE).
+- **Wahrheiten gesichert (vor Schluss):** WH-001 (Chat/Agent-Interface, Invarianten, DR #5 Artefakte) · WH-002 DR #5/#6 (Modell-Pool, Auswahl-Regeln) · README (Features/Status).
+- **Nichts verloren:** Folge-Einheiten (Benchmark-Seite, „Maschine"-Panel, L1-Run) bleiben in README „Nächste Schritte" + WP-WH002-CHANGE.
+- → `closed/`

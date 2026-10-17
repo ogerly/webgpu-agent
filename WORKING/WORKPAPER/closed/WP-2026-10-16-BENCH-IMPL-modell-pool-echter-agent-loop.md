@@ -1,6 +1,6 @@
 # WP-2026-10-16-BENCH-IMPL — Modell-Pool + echter Agent-Loop (Zerlegung & Ausführung)
 
-**Status:** open
+**Status:** closed ✅ (2026-10-17 — umgesetzt (Modell-Pool + echter Agent-Loop + echte Token-Usage), **live im Einsatz**; User-Freigabe des Schlusses („alle 4"); Browser-Test als erledigt gewertet (App ist live und vom User genutzt) · **Wahrheiten gesichert:** WH-002 **DR #5/#6** (Modell-Pool, Auswahl-Regeln))
 **BY:** — / opencode / qwen/qwen3.8-27b / local
 **Continued from:** `WP-2026-10-16-BENCH-PLAN-benchmark-levels-webgpu.md` (Umsetzung Schritt 1–3)
 **TOPIC:** BENCH · **Sub-Topic:** IMPL
@@ -143,8 +143,15 @@ den Schritt) · `timeElapsed` in Sekunden · Cache-Treffer → sofort 100 %.
 
 ## next_steps
 
-- [ ] Browser-Protokoll (verification) ausführen → Erkenntnisse hier notieren
-- [ ] **Benchmark-Seite** (Szenario-Textseiten L1–L5 + Start) → `src/bench/scenarios.ts` + `src/ui/bench.ts`
-- [ ] **Panel ④ „Maschine"** (WebGPU/CPU/RAM/Speicher + MachineProfile-JSON)
-- [ ] **Run-Log & Report** (Auto-Logging → JSON-Export → Ergebnistabelle) → `src/bench/report.ts`
-- [ ] Token-Usage → Tokenwächter (echte statt simulierte Tokens)
+- [x] Browser-Protokoll (verification) — **als erledigt gewertet (2026-10-17):** Agent-Loop ist live im Einsatz (App + Doku vom User abgenommen)
+- [ ] **Benchmark-Seite** (Szenario-Textseiten L1–L5 + Start) → `src/bench/scenarios.ts` + `src/ui/bench.ts` → **bleibt als Benchmark-Folge-Einheit** (README „Nächste Schritte" + WP-WH002-CHANGE)
+- [ ] **Panel ④ „Maschine"** (WebGPU/CPU/RAM/Speicher + MachineProfile-JSON) → **bleibt als Benchmark-Folge-Einheit**
+- [ ] **Run-Log & Report** (Auto-Logging → JSON-Export → Ergebnistabelle) → `src/bench/report.ts` → **bleibt als Benchmark-Folge-Einheit**
+- [x] Token-Usage → Tokenwächter (echte statt simulierte Tokens) — **umgesetzt** (echte Token-Usage im Audit, KERN-Integrität in WH-002)
+
+## Schluss (2026-10-17)
+
+- **User:** „Alle 4" (Freigabe des Schlusses von UI-DASH, BENCH-IMPL, ARTIFACT, WEBSITE).
+- **Wahrheiten gesichert (vor Schluss):** WH-002 **DR #5** (Modell-Pool Wächter/Planer/Fallback) + **DR #6** (Auswahl-Regeln/Executor) + **DR #8** (Reproduzierbarkeit) · WH-001 (Agent-Interface).
+- **Nichts verloren:** Benchmark-Folge-Einheiten (Seite, „Maschine"-Panel, Run-Log/Report) bleiben in README „Nächste Schritte" + WP-WH002-CHANGE.
+- → `closed/`

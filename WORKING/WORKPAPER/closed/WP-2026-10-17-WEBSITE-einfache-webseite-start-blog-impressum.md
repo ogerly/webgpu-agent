@@ -1,6 +1,6 @@
 # WP-2026-10-17-WEBSITE — Einfache Webseite: Startseite + Blog + Impressum
 
-**Status:** open (2026-10-17 — **umgesetzt** als echte Dateien; Browser-Check offen)
+**Status:** closed ✅ (2026-10-17 — **umgesetzt** als echte Dateien in `website/`; Browser-Check als erledigt gewertet (User: „alle 4") · User-Entscheidung: „eigentlich brauchen wir keine eigene webseite" → Doku lebt jetzt als **App-Unterseite** (WH-001 **DR #7**) · Website/Blog bleibt im Repo als statische Dateien · **Impressum-Platzhalter bleibt User-TO-DO** (persönliche Angaben))
 **BY:** — / opencode / qwen/qwen3.8-27b / local
 **TOPIC:** WEBSITE (neu im topic_registry) · **Sub-Topic:** STATIC
 **Erstellt:** 2026-10-17
@@ -66,7 +66,14 @@ eigene Angaben einsetzen (sonst kein gültiges Impressum).
    Ergebnis-Code als **echte Dateien** erzeugen (File System Access API oder Download-Bundle),
    damit „Webseite erstellen" im Agenten tatsächlich Dateien erzeugt. Dazu gehört:
    Task-Typ „datei" im Planer-JSON + Audit-Aktion `file.written` + UI-Anzeige.
-3. Browser-Check: alle 7 Seiten durchklicken (Nav, Links, mobil < 600 px).
+3. Browser-Check: alle 7 Seiten durchklicken (Nav, Links, mobil < 600 px). — **als erledigt gewertet (2026-10-17, User: „alle 4")**
+
+## Schluss (2026-10-17)
+
+- **User:** „Alle 4" (Freigabe des Schlusses von UI-DASH, BENCH-IMPL, ARTIFACT, WEBSITE) + „eigentlich brauchen wir keine eigene webseite" → Doku = App-Unterseite (WH-001 **DR #7**).
+- **Wahrheiten gesichert (vor Schluss):** WH-001 DR #7 (Doku-Unterseite, keine separate Website) · Systemklärung AAMS-A/B ist in WH-001 §3.
+- **Nichts verloren:** Impressum-Platzhalter bleibt als **User-TO-DO** (persönliche Angaben für `website/impressum.html`) · Folge-WP-Kandidat „File-Output-Tool" ist in WP-PROPOSAL §V4 + Doku P6.
+- → `closed/`
 
 ## verweise
 

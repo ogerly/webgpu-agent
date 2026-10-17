@@ -117,7 +117,7 @@ Lizenzen und sind nicht Teil dieses Repos.
 ## Nächste Schritte (→ Workpaper `next_steps` + `WH-002`)
 - [x] LLM-gestützte **Task-Zerlegung** (Planer) + echte **Ausführung** im Loop
 - [x] **Dashboard (WP-UI-DASH):** Chat = einziger Textkanal · Wächter-/Planer-Karten · VRAM-Bar ·
-      Tabs Zuschauen/Arbeit/Audit/Gedächtnis · **Browser-Test noch offen** (Checkliste im WP)
+      Tabs Zuschauen/Arbeit/Audit/Gedächtnis · **Browser-Test ✅** (2026-10-17; WP geschlossen)
 - [ ] **Benchmark-Seite:** Szenario-Textseiten L1–L5 + Start + Run-Report (`src/bench/*`)
 - [ ] **Panel „Maschine“:** WebGPU/CPU/RAM/Speicher + MachineProfile (Reproduzierbarkeit)
 - [ ] **Erster Testlauf:** L1 × 3 Kategorien × 5 Runs → WH-002 „bewiesen“-Standard (5/5)
