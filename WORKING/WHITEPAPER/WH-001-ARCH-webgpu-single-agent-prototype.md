@@ -2,7 +2,7 @@
 
 > **Status:** active
 > **Typ:** Quelle der Wahrheit (*Wahrheit-in-Zeit*)
-> **Lebenszyklus:** Initialisiert 2026-10-16 · aktualisiert **nur** bei strukturellen Entscheidungen
+> **Lebenszyklus:** Initialisiert 2026-10-16 · aktualisiert **nur** bei strukturellen Entscheidungen · zuletzt aktualisiert **2026-10-17** (DR #5: Artefakte)
 > **Autor:** — *(Whitepapers sind bewusst **autorfrei** — sie dokumentieren die Wahrheit des Systems, nicht, wer sie geschrieben hat.)*
 
 ---
@@ -22,6 +22,7 @@ des clientseitigen WebGPU-Agenten.
 | 2 | 2026-10-16 | WebLLM als Inferenz-Engine | Lokale Ausführung im Browser | Server-APIs (OpenAI/Anthropic) | Absolute Datensouveränität, null Cloud-Kosten |
 | 3 | 2026-10-16 | IndexedDB + JSON-Export | Persistenz für das Session-AAMS | `localStorage` | Besseres Speichervolumen, asynchron, saubere Portabilität per Datei |
 | 4 | 2026-10-16 | Single-Session-Fokus | Isolierte Arbeitsräume | Globaler Multi-Session-Store | Verhindert unnötige Komplexität im Prototyp-Stadium |
+| 5 | 2026-10-17 | **Artefakte abgeleitet, nicht gespeichert** (V4 Schritt 1): HTML-Ergebnisse werden **deterministisch aus `task.result`** extrahiert (`src/artifact/`) → Sandbox-Vorschau (iframe **ohne** `allow-same-origin`) + Download · Audit `artifact.ready/preview/download` | Agent erzeugt endlich **echte Dateien** (nachgewiesene Lücke: Website-Task `s_…_8i6ma8` = 6/6 „done", 0 Dateien) | neue `artifacts`-Sammlung im AAMS-B-Schema | **Kein Schema-Eingriff** (Invariant), kein neuer Zustand (überlebt Reset) · L4 bleibt (A ≠ B, Schema zentral hier) · WP-…-ARTIFACT D1–D5 |
 
 ## 3. AAMS-Doppelrolle (Fundament — nicht verwechseln)
 
@@ -50,6 +51,7 @@ des clientseitigen WebGPU-Agenten.
 * **Inferenz:** WebLLM (Qwen/Llama quantisiert)
 * **Zustand/Gedächtnis:** AAMS(B)-Struktur in IndexedDB, gekapselt an eine aktive `Session-ID`
 * **Export:** Manueller JSON-Download zur Sicherung des Projektstands (AAMS-B)
+* **Artefakte (DR #5):** HTML-Ergebnisse als **abgeleitete Artefakte** — Vorschau (Sandbox) + Download (`src/artifact/`)
 * **Dev-Prozess:** AAMS(A) in `WORKING/` (Workpaper → Whitepaper → LTM)
 
 ## 5. Schnittstellen & Kontrakte

@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>webgpu-agent · Dashboard</title>
+<style>
+:root{
+  --bg:#0a0c10; --panel:#11151c; --panel2:#161b24; --line:#222a36; --txt:#e6eaf2; --mut:#8b95a7;
+  --acc:#4da3ff; --acc2:#8b7bff; --ok:#3ddc97; --warn:#ffb454; --err:#ff6b6b;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(1200px 600px at 20% -10%,#14213a55,transparent),var(--bg);color:var(--txt);
+  font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+button,select,textarea,input{font:inherit;color:inherit}
+.app{display:grid;grid-template-rows:56px 1fr;height:100vh;min-width:1200px}
+
+/* Topbar */
+.top{display:flex;align-items:center;gap:20px;padding:0 20px;border-bottom:1px solid var(--line);background:#0d1117cc;backdrop-filter:blur(6px)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center;font-size:15px}
+.tag{font-size:11px;color:var(--mut);border:1px solid var(--line);padding:2px 8px;border-radius:99px}
+.sess{color:var(--mut);font-family:var(--mono);font-size:12px}
+.sess b{color:var(--ok);font-weight:600}
+.spacer{flex:1}
+.vram{width:340px}
+.vram .lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-bottom:4px}
+.vbar{height:10px;background:#0a0d12;border:1px solid var(--line);border-radius:99px;overflow:hidden;display:flex}
+.vbar i{display:block;height:100%;transition:width .4s}
+.vbar .w{background:var(--ok)} .vbar .p{background:var(--acc2)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;transition:.15s;font-size:13px}
+.btn:hover{border-color:#37445a;background:#1b2230}
+.btn.pri{background:linear-gradient(135deg,#2c6fd1,#5a4fd8);border-color:transparent}
+.btn.pri:hover{filter:brightness(1.15)}
+.btn.dng{color:var(--err)} .btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:12px}
+
+/* Main grid */
+.main{display:grid;grid-template-columns:360px minmax(420px,1fr) 420px;gap:14px;padding:14px;min-height:0}
+.col{display:flex;flex-direction:column;gap:14px;min-height:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;min-height:0}
+.card>h2{margin:0;padding:12px 16px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.card>h2 .r{margin-left:auto;text-transform:none;letter-spacing:0}
+.pad{padding:14px 16px}
+
+/* Model card */
+.model{padding:14px 16px;border-bottom:1px solid var(--line)}
+.model:last-child{border-bottom:0}
+.mh{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.mh .role{font-weight:700;font-size:15px}
+.mh .mode{color:var(--mut);font-size:12px}
+.pill{margin-left:auto;font-size:11px;padding:2px 9px;border-radius:99px;border:1px solid;display:flex;align-items:center;gap:6px}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.idle{color:var(--mut)} .pill.loading{color:var(--warn)} .pill.loading::before{animation:pulse 1s infinite}
+.pill.ready{color:var(--ok)} .pill.error{color:var(--err)}
+@keyframes pulse{50%{opacity:.2}}
+.sel{display:flex;gap:6px}
+.sel select{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:0}
+.load{margin-top:12px;display:none}
+.model.loading .load,.model.ready .load.keep{display:block}
+.steps{display:flex;gap:4px;margin-bottom:10px}
+.step{flex:1;font-size:10px;color:var(--mut);text-align:center}
+.step i{display:block;height:4px;border-radius:4px;background:#1c2330;margin-bottom:4px;position:relative;overflow:hidden}
+.step.done{color:var(--ok)} .step.done i{background:var(--ok)}
+.step.act{color:var(--txt)} .step.act i{background:#1f3556}
+.step.act i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--acc),transparent);animation:slide 1.2s infinite}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.pbar{height:12px;background:#0a0d12;border:1px solid var(--line);border-radius:99px;overflow:hidden;position:relative}
+.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s;position:relative}
+.pbar i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,#ffffff40,transparent);animation:slide 1.4s infinite}
+.model.ready .pbar i::after{display:none}
+.pct{display:flex;align-items:baseline;justify-content:space-between;margin:8px 0 6px}
+.pct b{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.pct span{color:var(--mut);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.stat small{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.stat b{font-family:var(--mono);font-size:13px;font-weight:600}
+.raw{margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--mut);max-height:30px;overflow:hidden;text-overflow:ellipsis}
+
+/* KERN */
+.kern .row{display:flex;gap:8px;align-items:center}
+.ctx{margin-top:12px}
+.ctx .lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:4px}
+.ctx .bar{height:8px;background:#0a0d12;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.ctx .bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s,background .3s}
+.led{width:9px;height:9px;border-radius:50%;background:#3a4252;display:inline-block}
+.led.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+
+/* Chat */
+.chat{flex:1}
+.msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+.m{max-width:86%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word}
+.m.user{align-self:flex-end;background:linear-gradient(135deg,#25508f,#3d3a99);border-bottom-right-radius:4px}
+.m.agent{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:4px}
+.m.sys{align-self:center;font-size:12px;color:var(--mut);background:transparent;border:1px dashed var(--line)}
+.m .who{font-size:11px;color:var(--mut);margin-bottom:3px;display:flex;gap:6px;align-items:center}
+.badge{font-size:10px;padding:1px 6px;border-radius:5px;background:#1f3556;color:var(--acc)}
+.badge.w{background:#143a2b;color:var(--ok)} .badge.p{background:#2b2656;color:#a99bff}
+.typing{display:inline-flex;gap:4px} .typing i{width:6px;height:6px;border-radius:50%;background:var(--mut);animation:pulse 1s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+.compose{border-top:1px solid var(--line);padding:12px;display:flex;gap:8px;align-items:flex-end}
+.compose textarea{flex:1;resize:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;height:46px;max-height:140px;outline:none}
+.compose textarea:focus{border-color:var(--acc)}
+.chips{display:flex;gap:6px;padding:0 12px 10px;flex-wrap:wrap}
+.chip{font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:3px 10px;cursor:pointer}
+.chip:hover{color:var(--txt);border-color:#37445a}
+
+/* Right tabs */
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tab{flex:1;padding:11px 8px;text-align:center;cursor:pointer;color:var(--mut);font-size:13px;border-bottom:2px solid transparent;background:none;border-top:0;border-left:0;border-right:0}
+.tab.act{color:var(--txt);border-bottom-color:var(--acc)}
+.tab .n{font-size:10px;background:var(--panel2);border-radius:99px;padding:1px 7px;margin-left:4px}
+.pane{display:none;flex:1;overflow:auto;min-height:0}.pane.act{display:block}
+.empty{color:var(--mut);text-align:center;padding:40px 16px;font-size:13px}
+
+.task{display:flex;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.task .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;flex:none;border:2px solid var(--line)}
+.task.run .ic{border-color:var(--warn);border-top-color:transparent;animation:spin 1s linear infinite}
+.task.done .ic{background:var(--ok);border-color:var(--ok);color:#06210f}
+.task.err .ic{background:var(--err);border-color:var(--err);color:#2b0505}
+@keyframes spin{to{transform:rotate(360deg)}}
+.task .t{font-weight:600} .task .s{font-size:12px;color:var(--mut)}
+
+.log{padding:5px 16px;font-family:var(--mono);font-size:11.5px;border-bottom:1px solid #1a212c;display:flex;gap:8px}
+.log time{color:#586377;flex:none}.log .k{flex:none;font-weight:600}
+.log.llm .k{color:var(--acc)} .log.session .k{color:var(--acc2)} .log.guard .k{color:var(--warn)}
+.log.task .k{color:var(--ok)} .log.error .k{color:var(--err)}
+.log .msg{color:#c3cad8;word-break:break-word}
+.logbar{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
+.logbar .chip.on{color:var(--txt);border-color:var(--acc);background:#14233b}
+
+.mem{padding:10px 16px;border-bottom:1px solid var(--line)}
+.mem .k{font-size:11px;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
+.mem .v{font-family:var(--mono);font-size:12px;margin-top:2px}
+.sec{padding:10px 16px 4px;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#232c3a;border-radius:8px;border:2px solid var(--panel)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="logo">✱</div>webgpu-agent</div>
+    <span class="tag">local-first</span><span class="tag">WebGPU</span><span class="tag">AAMS-nativ</span>
+    <span class="sess" id="sess">Session – · <b>–</b></span>
+    <div class="spacer"></div>
+    <div class="vram">
+      <div class="lbl"><span>VRAM-Budget</span><span id="vramTxt">0 / 4096 MB</span></div>
+      <div class="vbar"><i class="w" id="vW" style="width:0"></i><i class="p" id="vP" style="width:0"></i></div>
+    </div>
+    <button class="btn sm" id="demoBtn">▶ Demo</button>
+  </header>
+
+  <div class="main">
+    <!-- LEFT -->
+    <div class="col">
+      <section class="card">
+        <h2>① Modell-Pool <span class="r" id="poolInfo">Ziel ≤ 4096 MB</span></h2>
+
+        <div class="model" id="m-waechter">
+          <div class="mh"><span class="role">Wächter</span><span class="mode">resident</span><span class="pill idle" id="pill-waechter">nicht geladen</span></div>
+          <div class="sel">
+            <select id="sel-waechter"></select>
+            <button class="btn sm pri" data-load="waechter">▶ Laden</button>
+            <button class="btn sm" data-unload="waechter">■</button>
+          </div>
+          <div class="load keep" id="load-waechter"></div>
+        </div>
+
+        <div class="model" id="m-planer">
+          <div class="mh"><span class="role">Planer</span><span class="mode">on-demand</span><span class="pill idle" id="pill-planer">nicht geladen</span></div>
+          <div class="sel">
+            <select id="sel-planer"></select>
+            <button class="btn sm pri" data-load="planer">▶ Laden</button>
+            <button class="btn sm" data-unload="planer">■</button>
+          </div>
+          <div class="load keep" id="load-planer"></div>
+        </div>
+      </section>
+
+      <section class="card kern">
+        <h2>② KERN-Loop <span class="r"><span class="led" id="led"></span> <span id="loopTxt">gestoppt</span></span></h2>
+        <div class="pad">
+          <div class="row">
+            <button class="btn pri" id="loopStart">▶ Loop starten</button>
+            <button class="btn" id="loopStop">■ Stoppen</button>
+            <button class="btn" id="stepBtn">⏭ Schritt</button>
+          </div>
+          <div class="ctx">
+            <div class="lbl"><span>Tokenwächter · Kontext</span><span id="ctxTxt">–</span></div>
+            <div class="bar"><i id="ctxBar"></i></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>③ Session</h2>
+        <div class="pad" style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn sm" id="exportBtn">⬇ JSON-Export</button>
+          <button class="btn sm" id="importBtn">⬆ Import</button>
+          <button class="btn sm dng" id="resetBtn">↺ Gedächtnis zurücksetzen</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- CENTER -->
+    <section class="card chat">
+      <h2>Chat <span class="r" id="chatState">bereit</span></h2>
+      <div class="msgs" id="msgs"></div>
+      <div class="chips">
+        <span class="chip" data-q="Plane eine Aufgabe: Fasse die letzten Logs zusammen.">Logs zusammenfassen</span>
+        <span class="chip" data-q="Was ist dein aktueller Stand?">Aktueller Stand</span>
+        <span class="chip" data-q="Prüfe das Gedächtnis auf Widersprüche.">Gedächtnis prüfen</span>
+      </div>
+      <div class="compose">
+        <textarea id="inp" placeholder="Nachricht an den Agenten …  (Enter = senden, Shift+Enter = Zeilenumbruch)"></textarea>
+        <button class="btn pri" id="send">Senden ➤</button>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <section class="card">
+      <div class="tabs">
+        <button class="tab act" data-tab="work">Arbeit<span class="n" id="nWork">0</span></button>
+        <button class="tab" data-tab="logs">Audit-Log<span class="n" id="nLogs">0</span></button>
+        <button class="tab" data-tab="mem">Gedächtnis<span class="n" id="nMem">0</span></button>
+      </div>
+      <div class="pane act" id="pane-work"><div class="empty">Noch keine Aufgaben.<br>Schreib im Chat oder starte den Loop.</div></div>
+      <div class="pane" id="pane-logs">
+        <div class="logbar" id="logbar">
+          <span class="chip on" data-f="all">alle</span><span class="chip" data-f="llm">llm</span>
+          <span class="chip" data-f="task">task</span><span class="chip" data-f="guard">guard</span>
+          <span class="chip" data-f="session">session</span>
+        </div>
+        <div id="logs"></div>
+      </div>
+      <div class="pane" id="pane-mem"><div class="empty">Gedächtnis ist leer.</div></div>
+    </section>
+  </div>
+</div>
+
+<script>
+/* ============ Zustand ============ */
+const BUDGET = 4096;
+const MODELS = {
+  waechter:[{id:'Qwen2.5-0.5B-Instruct-q4f16_1-MLC',name:'Qwen2.5 0.5B Instruct',mb:945}],
+  planer:[{id:'Llama-3.2-3B-Instruct-q4f16_1-MLC',name:'Llama-3.2 3B Instruct',mb:2264},
+          {id:'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',name:'Qwen2.5 1.5B Instruct',mb:1630}]
+};
+const S = {
+  roles:{waechter:{status:'idle',mb:0,pct:0,stage:0,t:0,fetched:0,raw:'',model:null},
+         planer:{status:'idle',mb:0,pct:0,stage:0,t:0,fetched:0,raw:'',model:null}},
+  tasks:[], logs:[], memory:[], filter:'all', loop:false, ctx:0, ctxMax:4096, sessionId:null, demo:false
+};
+const $ = s=>document.querySelector(s), $$ = s=>[...document.querySelectorAll(s)];
+const esc = s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const hhmmss = ()=>new Date().toLocaleTimeString('de-DE');
+const STAGES = ['Download','Cache','Shader','Bereit'];
+
+/* ============ Modell-Karten ============ */
+function renderModel(role){
+  const r=S.roles[role], el=$('#m-'+role), pill=$('#pill-'+role), box=$('#load-'+role);
+  el.classList.toggle('loading',r.status==='loading');
+  el.classList.toggle('ready',r.status==='ready');
+  const txt={idle:'nicht geladen',loading:'lädt …',ready:'bereit',error:'Fehler'}[r.status];
+  pill.className='pill '+r.status; pill.textContent=txt;
+  if(r.status==='idle'){box.innerHTML='';return}
+  const speed = r.t>0 ? (r.fetched/r.t) : 0;
+  const total = r.mb;
+  const eta = (r.status==='loading' && speed>0) ? Math.max(0,Math.round((total-r.fetched)/speed)) : null;
+  const steps = STAGES.map((s,i)=>{
+    const c = r.status==='ready'||i<r.stage ? 'done' : (i===r.stage&&r.status==='loading'?'act':'');
+    return `<div class="step ${c}"><i></i>${s}</div>`}).join('');
+  box.innerHTML = `
+    <div class="steps">${steps}</div>
+    <div class="pct"><b>${Math.round(r.pct)}%</b><span>${esc(r.model?.name||'')} · ≈ ${r.mb} MB</span></div>
+    <div class="pbar"><i style="width:${r.pct}%"></i></div>
+    <div class="stats" style="margin-top:10px">
+      <div class="stat"><small>Geladen</small><b>${Math.round(r.fetched)} MB</b></div>
+      <div class="stat"><small>Tempo</small><b>${speed?speed.toFixed(1)+' MB/s':'–'}</b></div>
+      <div class="stat"><small>${r.status==='ready'?'Dauer':'Restzeit'}</small><b>${r.status==='ready'?Math.round(r.t)+' s':(eta!=null?'~'+eta+' s':'–')}</b></div>
+    </div>
+    ${r.raw?`<div class="raw" title="${esc(r.raw)}">${esc(r.raw)}</div>`:''}`;
+}
+function renderVram(){
+  const w = S.roles.waechter.status==='ready'?S.roles.waechter.mb:S.roles.waechter.mb*S.roles.waechter.pct/100*(S.roles.waechter.status==='loading'?1:0);
+  const p = S.roles.planer.status==='ready'?S.roles.planer.mb:S.roles.planer.mb*S.roles.planer.pct/100*(S.roles.planer.status==='loading'?1:0);
+  $('#vW').style.width=(w/BUDGET*100)+'%'; $('#vP').style.width=(p/BUDGET*100)+'%';
+  $('#vramTxt').textContent=`${Math.round(w+p)} / ${BUDGET} MB`;
+}
+function renderAllModels(){renderModel('waechter');renderModel('planer');renderVram()}
+
+/* ============ Tabs: Arbeit / Logs / Gedächtnis ============ */
+function renderTasks(){
+  $('#nWork').textContent=S.tasks.length;
+  $('#pane-work').innerHTML = S.tasks.length ? S.tasks.map(t=>`
+    <div class="task ${t.status}"><div class="ic">${t.status==='done'?'✓':t.status==='err'?'!':''}</div>
+    <div><div class="t">${esc(t.title)}</div><div class="s">${esc(t.note||'')}${t.role?` · <span class="badge ${t.role==='planer'?'p':'w'}">${t.role}</span>`:''}</div></div></div>`).join('')
+    : '<div class="empty">Noch keine Aufgaben.<br>Schreib im Chat oder starte den Loop.</div>';
+}
+function renderLogs(){
+  $('#nLogs').textContent=S.logs.length;
+  const list=S.logs.filter(l=>S.filter==='all'||l.kind===S.filter);
+  const box=$('#logs'), stick=box.parentElement.scrollTop+box.parentElement.clientHeight>=box.parentElement.scrollHeight-40;
+  box.innerHTML=list.map(l=>`<div class="log ${l.kind}"><time>${l.t}</time><span class="k">${esc(l.name)}</span><span class="msg">${esc(l.msg)}</span></div>`).join('');
+  if(stick) box.parentElement.scrollTop=box.parentElement.scrollHeight;
+}
+function renderMem(){
+  $('#nMem').textContent=S.memory.length;
+  $('#pane-mem').innerHTML = S.memory.length ? '<div class="sec">Memory</div>'+S.memory.map(m=>`<div class="mem"><div class="k">${esc(m.k)}</div><div class="v">${esc(m.v)}</div></div>`).join('')
+    : '<div class="empty">Gedächtnis ist leer.</div>';
+}
+function renderCtx(){
+  const pct=S.ctxMax?S.ctx/S.ctxMax*100:0;
+  $('#ctxTxt').textContent=S.ctx?`${S.ctx} / ${S.ctxMax} Tokens`:'–';
+  const b=$('#ctxBar'); b.style.width=pct+'%'; b.style.background=pct>85?'var(--err)':pct>65?'var(--warn)':'var(--ok)';
+}
+
+/* ============ Chat ============ */
+function addMsg(role,text,badge){
+  const d=document.createElement('div'); d.className='m '+role;
+  d.innerHTML=(role==='agent'?`<div class="who">Agent ${badge?`<span class="badge ${badge==='planer'?'p':'w'}">${badge}</span>`:''}</div>`:'')+esc(text);
+  $('#msgs').appendChild(d); $('#msgs').scrollTop=1e9; return d;
+}
+
+/* ============ Öffentliche Adapter-API (hier an echten Agenten anbinden) ============ */
+window.WGA = {
+  /** Lade-Fortschritt. Akzeptiert WebLLM initProgressCallback-Report: {progress:0..1, text:'…', timeElapsed} */
+  progress(role, report, model){
+    const r=S.roles[role]; r.status='loading'; if(model) r.model=model;
+    r.pct=Math.min(100,(report.progress||0)*100); r.t=report.timeElapsed||r.t; r.raw=report.text||'';
+    const m=/(\d+(?:\.\d+)?)\s*MB fetched/i.exec(r.raw); r.fetched = m ? +m[1] : r.mb*r.pct/100;
+    const tx=r.raw.toLowerCase();
+    r.stage = /fetching/.test(tx)?0 : /cache/.test(tx)?1 : /shader|compil|pipeline/.test(tx)?2 : r.stage;
+    if(r.pct>=100) r.stage=3;
+    renderModel(role); renderVram();
+  },
+  ready(role,model){const r=S.roles[role];r.status='ready';r.pct=100;r.stage=3;r.fetched=r.mb;if(model)r.model=model;renderModel(role);renderVram();},
+  unloaded(role){Object.assign(S.roles[role],{status:'idle',pct:0,stage:0,t:0,fetched:0,raw:''});renderModel(role);renderVram();},
+  error(role,msg){S.roles[role].status='error';S.roles[role].raw=msg;renderModel(role);},
+  log(kind,name,msg){S.logs.push({kind,name,msg,t:hhmmss()});if(S.logs.length>1000)S.logs.shift();renderLogs();},
+  task(id,patch){let t=S.tasks.find(x=>x.id===id);if(!t){t={id,title:'',status:'run'};S.tasks.push(t)}Object.assign(t,patch);renderTasks();},
+  memory(items){S.memory=items;renderMem();},
+  context(used,max){S.ctx=used;if(max)S.ctxMax=max;renderCtx();},
+  session(id,state){S.sessionId=id;$('#sess').innerHTML=`Session ${esc(id)} · <b>${esc(state||'active')}</b>`;},
+  say(role,text,badge){return addMsg(role,text,badge)},
+  /** Hooks: vom echten Agenten überschreiben */
+  onSend:null, onLoad:null, onUnload:null, onLoop:null, onStep:null, onReset:null, onExport:null, onImport:null
+};
+
+/* ============ UI-Events ============ */
+Object.keys(MODELS).forEach(role=>{
+  $('#sel-'+role).innerHTML=MODELS[role].map((m,i)=>`<option value="${i}">${m.name} · ≈ ${m.mb} MB</option>`).join('');
+  const m=MODELS[role][0]; S.roles[role].mb=m.mb; S.roles[role].model=m;
+  $('#sel-'+role).onchange=e=>{const mm=MODELS[role][+e.target.value];S.roles[role].mb=mm.mb;S.roles[role].model=mm;};
+});
+$$('[data-load]').forEach(b=>b.onclick=()=>{const role=b.dataset.load,m=MODELS[role][+$('#sel-'+role).value];
+  S.roles[role].mb=m.mb;S.roles[role].model=m; WGA.onLoad?WGA.onLoad(role,m):demoLoad(role,m)});
+$$('[data-unload]').forEach(b=>b.onclick=()=>{const role=b.dataset.unload;
+  WGA.onUnload?WGA.onUnload(role):(WGA.unloaded(role),WGA.log('llm','llm.unload',`role=${role}`))});
+$$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('act',x===t));
+  $$('.pane').forEach(p=>p.classList.toggle('act',p.id==='pane-'+t.dataset.tab));});
+$$('#logbar .chip').forEach(c=>c.onclick=()=>{S.filter=c.dataset.f;$$('#logbar .chip').forEach(x=>x.classList.toggle('on',x===c));renderLogs()});
+$$('.chip[data-q]').forEach(c=>c.onclick=()=>{$('#inp').value=c.dataset.q;sendMsg()});
+function sendMsg(){
+  const v=$('#inp').value.trim(); if(!v)return; $('#inp').value=''; addMsg('user',v);
+  WGA.onSend?WGA.onSend(v):demoReply(v);
+}
+$('#send').onclick=sendMsg;
+$('#inp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}});
+$('#loopStart').onclick=()=>setLoop(true); $('#loopStop').onclick=()=>setLoop(false);
+$('#stepBtn').onclick=()=>WGA.onStep?WGA.onStep():demoStep();
+function setLoop(on){S.loop=on;$('#led').classList.toggle('on',on);$('#loopTxt').textContent=on?'läuft':'gestoppt';
+  WGA.log('session','kern.loop',on?'gestartet':'gestoppt'); WGA.onLoop&&WGA.onLoop(on);
+  clearInterval(setLoop.t); if(on&&!WGA.onLoop) setLoop.t=setInterval(demoStep,3500);}
+$('#resetBtn').onclick=()=>{if(!confirm('Gedächtnis wirklich zurücksetzen? (Safety-Export wird ausgelöst)'))return;
+  WGA.onReset?WGA.onReset():(S.tasks=[];S.memory=[];renderTasks();renderMem();WGA.log('session','session.reset','Gedächtnis zurückgesetzt – Safety-Export ausgelöst.'))};
+$('#exportBtn').onclick=()=>{ if(WGA.onExport)return WGA.onExport();
+  const blob=new Blob([JSON.stringify({session:S.sessionId,tasks:S.tasks,memory:S.memory,logs:S.logs},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${S.sessionId||'session'}.json`;a.click();};
+$('#importBtn').onclick=()=>{ if(WGA.onImport)return WGA.onImport();
+  const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=async()=>{
+    const d=JSON.parse(await i.files[0].text());S.tasks=d.tasks||[];S.memory=d.memory||[];S.logs=d.logs||[];renderTasks();renderMem();renderLogs();};i.click();};
+
+/* ============ Demo-Modus (nur Simulation – ersetzt keinen echten Agenten) ============ */
+function demoLoad(role,m){
+  const r=S.roles[role]; WGA.log('llm','llm.load',`model=${m.id} role=${role}`);
+  addMsg('sys',`${role==='planer'?'Planer':'Wächter'}: lade ${m.name} …`);
+  let p=0,t=0; clearInterval(r._i);
+  r._i=setInterval(()=>{
+    t+=1; p+=Math.random()*3.2+.8; if(p>100)p=100;
+    const mb=Math.round(m.mb*p/100*.57);
+    const phase=p<70?`Fetching param cache[${Math.round(p*.58)}/58]: ${mb}MB fetched. ${Math.round(p)}% completed, ${t} secs elapsed.`:
+                p<92?`Loading model from cache[${Math.round(p*.58)}/58]: ${Math.round(p)}% completed`:`Compiling shaders / finish loading on GPU`;
+    WGA.progress(role,{progress:p/100,text:phase,timeElapsed:t},m);
+    if(p>=100){clearInterval(r._i);WGA.ready(role,m);WGA.log('llm','llm.ready',`role=${role} ${t}s`);addMsg('sys',`${m.name} ist bereit.`)}
+  },350);
+}
+let stepN=0;
+function demoStep(){
+  if(S.roles.waechter.status!=='ready'){WGA.log('guard','guard.block','Wächter nicht geladen – Schritt übersprungen');return}
+  stepN++; const id='t'+stepN, role=S.roles.planer.status==='ready'?'planer':'waechter';
+  WGA.task(id,{title:`Schritt ${stepN}: Kontext prüfen & Plan aktualisieren`,status:'run',role,note:'läuft …'});
+  WGA.log('task','task.start',`id=${id} role=${role}`);
+  WGA.context(Math.min(S.ctxMax,S.ctx+Math.round(200+Math.random()*350)));
+  if(S.ctx>S.ctxMax*.85) WGA.log('guard','guard.warn',`Kontext bei ${Math.round(S.ctx/S.ctxMax*100)}% – Kompaktierung empfohlen`);
+  setTimeout(()=>{WGA.task(id,{status:'done',note:'abgeschlossen'});WGA.log('task','task.done',`id=${id}`);
+    WGA.memory([...S.memory,{k:`wissen.${S.memory.length+1}`,v:`Ergebnis aus Schritt ${stepN} gespeichert`}]);},2200);
+}
+function demoReply(q){
+  const typing=document.createElement('div');typing.className='m agent';typing.innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
+  $('#msgs').appendChild(typing);$('#msgs').scrollTop=1e9;$('#chatState').textContent='denkt …';
+  WGA.log('llm','llm.chat',`prompt="${q.slice(0,50)}"`);
+  setTimeout(()=>{typing.remove();$('#chatState').textContent='bereit';
+    const pl=S.roles.planer.status==='ready';
+    addMsg('agent',pl?'Ich habe die Aufgabe geplant und in die Arbeitsliste eingetragen. Details siehst du rechts unter „Arbeit“.':
+      'Der Planer ist nicht geladen – ich antworte vorerst nur mit dem Wächter-Modell. Lade den Planer für echte Planung.',pl?'planer':'waechter');
+    WGA.task('c'+Date.now(),{title:q.slice(0,60),status:'done',role:pl?'planer':'waechter',note:'aus Chat'});
+    WGA.context(Math.min(S.ctxMax,S.ctx+300));
+  },1400);
+}
+$('#demoBtn').onclick=()=>{
+  S.demo=true; WGA.session('s_demo_'+Date.now().toString(36),'active');
+  WGA.log('session','session.new','Demo-Session gestartet');
+  addMsg('agent','Hallo! Das ist der Demo-Modus. Ich lade jetzt Wächter und Planer, damit du die Anzeige siehst.');
+  WGA.context(0,4096); demoLoad('waechter',MODELS.waechter[0]); setTimeout(()=>demoLoad('planer',MODELS.planer[0]),1500);
+};
+
+/* Init */
+WGA.session('s_'+Date.now().toString(36),'active');
+addMsg('sys','Bereit. Lade zuerst den Wächter, dann den Planer – oder klick oben auf „Demo“.');
+renderAllModels();renderTasks();renderLogs();renderMem();renderCtx();
+</script>
+</body>
+</html>
