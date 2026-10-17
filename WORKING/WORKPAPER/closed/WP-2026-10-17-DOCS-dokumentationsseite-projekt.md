@@ -1,7 +1,7 @@
 # WP-2026-10-17 — DOCS: Dokumentationsseite zum Projekt (Warum/Ziel/Stand/Forschung/Probleme/Wächter)
 
 > **Typ:** Workpaper (Arbeitsdokument, **kein** Whitepaper)
-> **Status:** open (Umsetzung ✅ — **Freigabe durch User noch ausstehend**)
+> **Status:** closed ✅ (2026-10-17 — Doku vom User freigegeben: „sehr gut. danke" · Inhalte jetzt kanonisch in `doku.html` (App-Unterseite, WP-APP-DOKU) · **Wahrheiten gesichert: WH-001 DR #6 (Demo/Hosting) + DR #7 (Doku-Unterseite)** · `INDEX.md` aktuell)
 > **BY:** user (ogerly) / opencode / qwen3.8-27b (lokal) / agent
 > **Bezug:** `idee.md` (Vision) · WH-001 (Architektur, AAMS-Doppelrolle) · WH-002 (Benchmark) ·
 > WP-…-DEPLOY (6 Forschungsfragen) · WP-…-TRAIN-PLAN (Wächter) · WP-…-PROPOSAL (V1–V5) · WP-…-WH002-CHANGE
@@ -34,6 +34,14 @@ WP-PROPOSAL (V1–V5), WP-WH002-CHANGE (Geräterollen) — nichts erfunden; Refe
 
 ## 3. Offene Punkte
 
-- [ ] User prüft Text (v. a. §6 Probleme + §7 Wächter) — ggf. Ton/Inhalt anpassen
-- [ ] Seite pflegen: bei Session-Ende §4 (Stand) und §6 (Probleme) aktualisieren, wenn sich etwas ändert
+- [x] User prüft Text (v. a. §6 Probleme + §7 Wächter) — **freigegeben (2026-10-17)**
+- [ ] Seite pflegen: bei Session-Ende §4 (Stand) und §6 (Probleme) aktualisieren, wenn sich etwas ändert → **Pflicht der App-Unterseite `doku.html`** (WH-001 DR #7)
 - [ ] Optional: EN-Variante der Doku-Seite, falls internationales Publikum adressiert wird
+
+## 4. Schluss (2026-10-17)
+
+- **User:** „sehr gut. danke, damit kann das workpaper geschlossen werden."
+- **Wahrheiten gesichert (vor Schluss):** WH-001 **DR #6** (Demo = HF-Space, GitHub = nur Code) + **DR #7** (Doku = App-Unterseite) · `WORKING/WHITEPAPER/INDEX.md` (neu) aktuell ·
+  Doku-Kanoni­k: `doku.html` (Live: `https://ogerl-webgpu-agent.static.hf.space/doku.html`).
+- **Referenz:** `website/dokumentation.html` bleibt als Kopie (nicht mehr gepflegt, Verweis-Hinweis eingefügt).
+- → `closed/`

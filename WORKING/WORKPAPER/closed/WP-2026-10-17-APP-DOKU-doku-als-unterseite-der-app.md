@@ -1,7 +1,7 @@
 # WP-2026-10-17 — APP-DOKU: Doku als Unterseite der App (statt eigener Website)
 
 > **Typ:** Workpaper (Arbeitsdokument, **kein** Whitepaper)
-> **Status:** open (Umsetzung ✅ — **Freigabe durch User noch ausstehend**)
+> **Status:** closed ✅ (2026-10-17 — Doku-Unterseite + Deep-Links vom User freigegeben: „sehr gut. danke" · Live verifiziert · **Wahrheit gesichert: WH-001 DR #7 (Doku-Unterseite)** + DR #6 (Hosting) · `INDEX.md` aktuell)
 > **BY:** user (ogerly) / opencode / qwen3.8-27b (lokal) / agent
 > **Bezug:** WP-…-DOCS (Inhalt der Doku) · WP-…-DEPLOY (Space-Hosting) · WH-001 (local-first)
 
@@ -28,5 +28,12 @@ App-Topbar. GitHub bleibt weiterhin nur Code (kein Pages — User-Entscheidung).
 
 ## 3. Offene Punkte
 
-- [ ] User prüft Doku-Unterseite in der App (Link in Topbar, Inhalt, Look)
-- [ ] Bei Content-Änderungen: **nur** `doku.html` pflegen (kanonisch) — `website/dokumentation.html` ist Referenz
+- [x] User prüft Doku-Unterseite in der App (Link in Topbar, Inhalt, Look) — **freigegeben (2026-10-17)**
+- [ ] Bei Content-Änderungen: **nur** `doku.html` pflegen (kanonisch) — `website/dokumentation.html` ist Referenz → **dauerhaft** (WH-001 DR #7)
+
+## 4. Schluss (2026-10-17)
+
+- **User:** „sehr gut. danke, damit kann das workpaper geschlossen werden."
+- **Live (verifiziert):** `https://ogerl-webgpu-agent.static.hf.space/doku.html` · App mit 📖-Link · `#doku`-Routing + Anker (`#probleme`, `#waechter` …) · altes JS 404.
+- **Wahrheiten gesichert (vor Schluss):** WH-001 **DR #7** (Doku = App-Unterseite, `doku.html` kanonisch, `#doku`-Routing, Anker) + **DR #6** (Hosting) · `INDEX.md` aktuell · README/social.md mit Links.
+- → `closed/`
