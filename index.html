@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>webgpu-agent · Dashboard</title>
+    <!-- Theme: src/ui/theme.css (Import in main.ts) — WP-UI-DASH §3.2 -->
+    <script type="module" crossorigin src="./assets/index-B0iE_Kq-.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BdmpRsKy.css">
+  </head>
+  <body>
+    <div class="app" id="app">
+      <!-- Topbar: Identität + Session + VRAM-Budget (permanent sichtbar) -->
+      <header class="top">
+        <div class="brand"><div class="logo">✱</div>webgpu-agent</div>
+        <span class="tag">local-first</span>
+        <span class="tag">WebGPU</span>
+        <span class="tag">AAMS-nativ</span>
+        <span class="sess" id="sess">Session – · –</span>
+        <div class="spacer"></div>
+        <div class="vram">
+          <div class="lbl"><span>VRAM-Budget</span><span id="vramTxt">0 / 4096 MB</span></div>
+          <div class="vbar"><i class="w" id="vW"></i><i class="p" id="vP"></i></div>
+        </div>
+      </header>
+
+      <div class="main">
+        <!-- LEFT: Kontrolle (Modell-Pool · KERN · Session) -->
+        <div class="col">
+          <section class="card">
+            <h2>① Modell-Pool <span class="r">Ziel ≤ 4096 MB</span></h2>
+
+            <div class="model" id="m-waechter">
+              <div class="mh">
+                <span class="role">Wächter</span><span class="mode">resident</span>
+                <span class="pill idle" id="pill-waechter">nicht geladen</span>
+              </div>
+              <div class="sel">
+                <select id="sel-waechter" aria-label="Wächter-Modell"></select>
+                <button class="btn sm pri" data-load="waechter">▶ Laden</button>
+                <button class="btn sm" data-unload="waechter" title="Entladen">■</button>
+              </div>
+              <div class="load" id="load-waechter"></div>
+            </div>
+
+            <div class="model" id="m-planer">
+              <div class="mh">
+                <span class="role">Planer</span><span class="mode">on-demand</span>
+                <span class="pill idle" id="pill-planer">nicht geladen</span>
+              </div>
+              <div class="sel">
+                <select id="sel-planer" aria-label="Planer-Modell"></select>
+                <button class="btn sm pri" data-load="planer">▶ Laden</button>
+                <button class="btn sm" data-unload="planer" title="Entladen">■</button>
+              </div>
+              <div class="load" id="load-planer"></div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>② KERN-Loop <span class="r"><span class="led" id="led"></span> <span id="loopTxt">gestoppt</span></span></h2>
+            <div class="pad">
+              <div class="row">
+                <button class="btn pri" id="kern-start">▶ Loop starten</button>
+                <button class="btn" id="kern-stop">■ Stoppen</button>
+                <button class="btn" id="step-btn" title="Nächsten Agent-Schritt ausführen">⏭ Schritt</button>
+              </div>
+              <div class="ctx">
+                <div class="lbl"><span>Tokenwächter · Kontext</span><span id="ctxTxt">–</span></div>
+                <div class="bar"><i id="ctxBar"></i></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>③ Session</h2>
+            <div class="pad" style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn sm" id="export-btn">⬇ JSON-Export</button>
+              <button class="btn sm" id="import-btn">⬆ Import</button>
+              <input type="file" id="import-file" accept="application/json,.json" hidden />
+              <button class="btn sm dng" id="reset-btn">↺ Gedächtnis zurücksetzen</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- CENTER: Chat — der einzige Textkanal zwischen User und Agent -->
+        <section class="card chat">
+          <h2>Chat <span class="r" id="chatState">bereit</span></h2>
+          <div class="msgs" id="msgs"></div>
+          <div class="chips">
+            <button class="chip" data-q="Was ist dein aktueller Stand?">Aktueller Stand</button>
+            <button class="chip" data-q="Plane eine Aufgabe: Fasse die letzten Logs zusammen.">Logs zusammenfassen</button>
+            <button class="chip" data-q="Prüfe das Gedächtnis auf Widersprüche.">Gedächtnis prüfen</button>
+          </div>
+          <div class="compose">
+            <textarea id="inp" placeholder="Nachricht an den Agenten …  (Enter = senden, Shift+Enter = Zeilenumbruch)"></textarea>
+            <button class="btn pri" id="send">Senden ➤</button>
+          </div>
+        </section>
+
+        <!-- RIGHT: den Agenten zuschauen (Feed) · Arbeit (Task-Tree) · Audit · Gedächtnis -->
+        <section class="card">
+          <div class="tabs">
+            <button class="tab act" data-tab="live">Zuschauen<span class="n" id="nLive">0</span></button>
+            <button class="tab" data-tab="work">Arbeit<span class="n" id="nWork">0</span></button>
+            <button class="tab" data-tab="audit">Audit<span class="n" id="nAudit">0</span></button>
+            <button class="tab" data-tab="mem">Gedächtnis<span class="n" id="nMem">0</span></button>
+          </div>
+
+          <div class="pane pane-live act" id="pane-live">
+            <div class="live-now" id="liveNow">
+              <div class="ln-head">
+                <span class="ln-dot"></span><span id="lnAction">bereit</span><span class="ln-time" id="lnTime"></span>
+              </div>
+              <div class="ln-detail" id="lnDetail">warte auf Aufgabe</div>
+            </div>
+            <div class="feed" id="feed"></div>
+          </div>
+
+          <div class="pane" id="pane-work">
+            <div id="tasks"><div class="empty">Noch keine Aufgaben.<br>Schreib im Chat oder starte den Loop.</div></div>
+          </div>
+
+          <div class="pane" id="pane-audit">
+            <div class="logbar" id="logbar">
+              <button class="chip on" data-f="all">alle</button>
+              <button class="chip" data-f="llm">llm</button>
+              <button class="chip" data-f="task">task</button>
+              <button class="chip" data-f="guard">guard</button>
+              <button class="chip" data-f="session">session</button>
+            </div>
+            <div id="logs"></div>
+          </div>
+
+          <div class="pane" id="pane-mem">
+            <div id="mem"><div class="empty">Gedächtnis ist leer.</div></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- V4 Schritt 1: Artefakt-Vorschau (WP-…-ARTIFACT) —
+           Sandbox: `allow-scripts`, **ohne** `allow-same-origin` → Opaque Origin
+           (kein Zugriff auf die Elternseite, keine Cookies/Storage). -->
+      <div class="pv" id="pvModal" role="dialog" aria-modal="true" aria-label="Artefakt-Vorschau">
+        <div class="pv-box">
+          <div class="pv-head">
+            <span class="pv-t" id="pvTitle">Vorschau</span>
+            <span class="pv-note">sandboxed · kein Zugriff auf diese Seite</span>
+            <span class="pv-spacer"></span>
+            <button class="btn sm" id="pvDownload">⬇ Download</button>
+            <button class="btn sm dng" id="pvClose">✕ Schließen</button>
+          </div>
+          <iframe id="pvFrame" sandbox="allow-scripts" title="Artefakt-Vorschau (sandboxed)"></iframe>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
