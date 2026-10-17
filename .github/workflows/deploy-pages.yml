@@ -1,0 +1,55 @@
+# Deploy: GitHub Pages (erster Deploy, 2026-10-17)
+# WP-2026-10-17-DEPLOY-webgpu-agent-deploy-optionen.md — Option „Statisches Hosting".
+#
+# Build auf dem Runner (dist/ ist gitignored) → statischer Publish.
+# App: local-first, keine Secrets im Bundle, base: "./" (funktioniert im Subpfad
+# https://ogerly.github.io/webgpu-agent/).
+#
+# Hinweis: die App lädt die WebLLM-Weights zur Laufzeit (einmalig, Setup — L2)
+# vom CDN. Der Agent läuft danach vollständig im Browser (WebGPU, Chrome/Edge).
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install + Build
+        run: |
+          npm ci
+          npm run typecheck
+          npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
