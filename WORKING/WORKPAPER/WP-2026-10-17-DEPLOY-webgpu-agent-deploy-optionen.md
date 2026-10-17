@@ -1,7 +1,7 @@
 # WP-2026-10-17 — DEPLOY: Deploy-Optionen für den WebGPU-Agenten
 
 > **Typ:** Workpaper (Arbeitsdokument, **kein** Whitepaper)
-> **Status:** open · **⚠ BEISPIEL & FORSCHUNG** (Forschungsdokumentation — **kein verbindlicher Plan**) · **Erster Deploy (2026-10-17): vorbereitet, Blocker = GitHub-Billing-Sperre + HF-Token 401** (Abschnitt 4)
+> **Status:** open · **⚠ BEISPIEL & FORSCHUNG** (Forschungsdokumentation — **kein verbindlicher Plan**) · **Erster Deploy (2026-10-17): ✅ LIVE** als HuggingFace-Static-Space (Abschnitt 4)
 > **Bezug:** WH-001 (local-first, keine Cloud) · WH-002 (≤ 4 GB VRAM) · WP-…-PROPOSAL (L2: offline nach Setup)
 > **Lebenszyklus:** Forschungsergebnisse → nur **strukturelle** Entscheidungen als Decision Record in WH-001. Danach → `closed/`.
 > **README:** als „Beispiel & Forschung" gekennzeichnet.
@@ -50,9 +50,13 @@ jede Option unten ist nur ein **Weg, die Dateien zum Browser zu bringen**.
 6. **Sicherheit/Hosting:** CSP-Header beim Hosting, keine Secrets in der App (Invariant),
    Web-Zugriff nur via V2-Brücke (untrusted-Daten-Regel aus WP-…-PROPOSAL §V2).
 
-## 4. Erster Deploy (2026-10-17 — vorbereitet, **Blocker: GitHub-Billing**)
+## 4. Erster Deploy (2026-10-17 — ✅ **LIVE** via HuggingFace-Static-Space)
 
-> **Status:** alles vorbereitet · **Blocker 1:** GitHub-Account ist **locked (billing issue)** → Actions können nicht starten (Job-Annotation: „account is locked due to a billing issue") · **Blocker 2:** HF-Token wird mit **401 abgelehnt** (ungültig/abgelaufen).
+> **Status (2026-10-17, nach Token-Ersatz):** **LIVE** · **Entscheidung (User):** GitHub bleibt reine Quelle
+> (kein Actions/Pages — Billing-Sperre wird damit irrelevant) · Deploy-Ziel = **HuggingFace** ·
+> HF-Token ersetzt (Role **write**) → Space `ogerl/webgpu-agent` (Static) angelegt, `dist/` (6 MB, **kein LFS nötig**) hochgeladen, Live-Status verifiziert.
+>
+> **Blocker-Historie:** (1) GitHub-Account **locked (billing issue)** → Actions konnten nicht starten → umgangen (GitHub nur Quelle) · (2) HF-Token **401** (ungültig/abgelaufen) → behoben (neues Token, Write).
 
 | Schritt | Ergebnis |
 |---------|----------|
@@ -60,16 +64,24 @@ jede Option unten ist nur ein **Weg, die Dateien zum Browser zu bringen**.
 | Deploy-Workflow | ✅ `.github/workflows/deploy-pages.yml`: `npm ci` + `typecheck` + `build` → Publish `dist/` — **wartet auf freigegebenes Konto** |
 | Fallback-Branche | ✅ `gh-pages` mit fertigem Build (index.html + assets) — **manuell** aktivierbar: GitHub → Settings → Pages → Source = Branch `gh-pages`, Path `/` (funktioniert **ohne** Actions) |
 | GitHub Pages | ✅ aktiviert (`https://ogerly.github.io/webgpu-agent/`, `build_type=workflow`); per API nicht auf Legacy umstellbar (404/422: „Deactivating … not allowed") |
-| HuggingFace Space | ⛔ Token **401** → neu generieren (hf.co/settings/tokens, Berechtigung **Write**) → dann: Space `webgpu-agent` (Static) + `dist/` via LFS-API |
+| HuggingFace Space | ✅ **LIVE:** Space `ogerl/webgpu-agent` (sdk **static**, Region us) · `dist/` hochgeladen (index.html + 3 Assets, 6 MB) + `app.yaml` (`sdk: static`) · `runtime.stage = RUNNING` |
 
-**Nächste Aktionen (User):**
-1. **GitHub-Billing klären** (github.com/billing bzw. GitHub-Mail zur Sperrung) → danach Workflow re-runnen (Actions → Re-run) oder einfach pushen → Site live unter `https://ogerly.github.io/webgpu-agent/`
-   — *oder* den Fallback manuell: Settings → Pages → Branch `gh-pages` (Path `/`).
-2. **HF-Token neu generieren** (Write) in `.env` legen → ich lege den Static-Space an und lade `dist/` hoch.
+**Ergebnis (2026-10-17):**
+1. **GitHub** — bleibt reine Quelle (main + `gh-pages`-Branch liegen als Fallback bereit) · Billing-Sperre wird damit für den Deploy irrelevant.
+2. **HF-Token** — ✅ ersetzt (Write, `whoami-v2`: User `ogerl`) → Space angelegt, `dist/` hochgeladen, Live-Verifikation bestanden.
+
+**Live-Verifikation (2026-10-17):**
+| Check | Ergebnis |
+|-------|----------|
+| Token | ✅ `GET /api/whoami-v2` → User `ogerl`, Access-Token Role **write** |
+| Space | ✅ `GET /api/spaces/ogerl/webgpu-agent` → `sdk: static`, `runtime.stage = RUNNING`, 1 Replica |
+| App-URL | ✅ `https://ogerl-webgpu-agent.static.hf.space/` → `index.html`, Title „webgpu-agent · Dashboard", HTTP 200 |
+| Assets | ✅ `assets/index-B0iE_Kq-.js` (40 104 B, HTTP 200, **byte-identisch** zu `dist/`) · `assets/index-BdmpRsKy.css` (11 509 B, HTTP 200) |
+| Space-Seite | ℹ️ `https://huggingface.co/spaces/ogerl/webgpu-agent` zeigt die Space-Hülle; die **App** läuft auf der Subdomain `*.static.hf.space` (dort injiziert die Plattform ein kleines `window.huggingface`-Meta-Skript im `<head>` — ohne Wirkung auf die App) |
 
 **Bekannt / erwartet (Forschungsfragen 1–3):**
 - Weights (≈ 945 MB Wächter / ≈ 2,3 GB Planer) kommen **beim ersten Laden** vom CDN (Setup, L2 erlaubt) — danach: Browser-Cache.
-- **AAMS-B-Gedächtnis ist pro Browser + Origin** → auf `ogerly.github.io` andere Instanz als lokal (JSON-Export/Import = portable Kopie). Frage 2.
+- **AAMS-B-Gedächtnis ist pro Browser + Origin** → auf `*.static.hf.space` andere Instanz als lokal (JSON-Export/Import = portable Kopie). Frage 2.
 - WebGPU-Pflicht: Chrome/Edge. Frage 3.
 
 ## 5. Minimal-Beispiel (Schnellstart, lokal — für die Forschung nutzen)
