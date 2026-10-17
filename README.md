@@ -82,6 +82,8 @@ src/
 > **Erster Deploy (2026-10-17) — ✅ LIVE:**
 > **Demo:** `https://huggingface.co/spaces/ogerl/webgpu-agent` (HuggingFace-Static-Space,
 > App läuft in der Space-Seite) ·
+> **Doku:** `https://ogerl-webgpu-agent.static.hf.space/dokumentation.html` (Warum/Ziel/Stand/Forschungsansatz/
+> Offene Probleme/Wächter-Modell — Quelle: `website/dokumentation.html`) ·
 > **Code:** `https://github.com/ogerly/webgpu-agent` (GitHub = **nur Code** — **kein Pages, kein Actions**).
 > `dist/` (6 MB) als HuggingFace-Static-Space hochgeladen; index.html + JS + CSS verifiziert (HTTP 200,
 > JS byte-identisch zum lokalen Build). Details: `WORKING/WORKPAPER/WP-2026-10-17-DEPLOY-webgpu-agent-deploy-optionen.md` §4.

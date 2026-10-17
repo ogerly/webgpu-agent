@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>webgpu-agent — Dokumentation</title>
+  <meta name="description" content="Dokumentation zum Projekt webgpu-agent: Warum wir es machen, was das Ziel ist, wo der Stand steht, der Forschungsansatz, die offenen Probleme und der Plan für ein eigenes Wächter-Modell.">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .toc {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 24px; margin: 0 0 28px;
+    }
+    .toc ol { margin: 8px 0 0; padding-left: 22px; }
+    .toc li { margin: 4px 0; }
+    .toc a { color: var(--accent-dark); text-decoration: none; font-weight: 500; }
+    .toc a:hover { text-decoration: underline; }
+    .doc h2 { scroll-margin-top: 24px; }
+    table.doc-table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 0.95rem; }
+    table.doc-table th, table.doc-table td {
+      border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top;
+    }
+    table.doc-table th { background: var(--accent-soft); }
+    .badge { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+    .badge.ok { background: #e6f6ec; color: #1a7f3c; }
+    .badge.open { background: #fff4e0; color: #9a6b00; }
+    .badge.no { background: #fdeaea; color: #b3261e; }
+    .note { background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+    .warn { background: #fff8e6; border-left: 4px solid #d9a514; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+    .doc code { background: #eef1f5; padding: 1px 6px; border-radius: 6px; font-size: 0.9em; }
+    ul.tight li, ol.tight li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <a class="brand" href="index.html">Meine<span>Webseite</span></a>
+      <nav aria-label="Hauptnavigation">
+        <ul>
+          <li><a href="index.html">Start</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="dokumentation.html" class="active" aria-current="page">Doku</a></li>
+          <li><a href="impressum.html">Impressum</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="article doc">
+      <h1>webgpu-agent — Dokumentation</h1>
+      <p><time datetime="2026-10-17">Stand: 17. Oktober 2026</time></p>
+      <p class="lead">
+        Ein autonomer Webagent, der zu 100&nbsp;% im Browser läuft: lokale LLMs auf der GPU (WebGPU),
+        strukturiertes Gedächtnis (AAMS), echte Task-Zerlegung und Ausführung — ohne Cloud, ohne Server.
+      </p>
+
+      <p>
+        <strong>Was ist das?</strong> webgpu-agent ist ein <strong>privates Forschungsprojekt / Experiment (WIP)</strong> —
+        kein fertiges Produkt, keine Support- oder Stabilitätsversprechen. Es ist ein Prototyp, dessen Zweck es ist,
+        Fragen zu beantworten, die sonst niemand sauber beantwortet: <em>Wie weit kommt ein wirklich autonomer Agent,
+        wenn er komplett im Browser leben muss?</em>
+      </p>
+      <p>
+        <a class="btn" href="https://huggingface.co/spaces/ogerl/webgpu-agent">▶ Demo ansehen (Chrome/Edge)</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/ogerly/webgpu-agent">Code auf GitHub (MIT)</a>
+      </p>
+
+      <nav class="toc" aria-label="Inhaltsverzeichnis">
+        <strong>Inhaltsverzeichnis</strong>
+        <ol>
+          <li><a href="#warum">Warum machen wir das?</a></li>
+          <li><a href="#ziel">Was ist das Ziel?</a></li>
+          <li><a href="#stand">Wo steht das Projekt?</a></li>
+          <li><a href="#forschung">Der Forschungsansatz</a></li>
+          <li><a href="#probleme">Offene Probleme — was es zu lösen gilt</a></li>
+          <li><a href="#waechter">Ein eigenes Modell für den Wächter</a></li>
+          <li><a href="#links">Links</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="warum">1. Warum machen wir das?</h2>
+
+      <h3>1.1 Datensouveränität ist keine Einstellung — es ist die Architektur</h3>
+      <p>
+        Fast alle heutigen AI-Agents arbeiten über Cloud-APIs: Jede Aufgabe, jeder Dateiinhalt, jedes
+        „Gedächtnis" des Agenten läuft über fremde Server. Das ist bequem — aber es bedeutet, dass die
+        Daten nie wirklich uns gehören. Für sensible Inhalte (private Texte, Arbeitsstände, persönliche
+        Notizen) ist das kein vertretbarer Zustand.
+      </p>
+      <p>
+        webgpu-agent stellt das um: Der Agent läuft <strong>komplett im Browser</strong>. Es gibt keine
+        Cloud-APIs, kein Backend, keine Serverinfrastruktur. Alle Daten — Aufgaben, Zwischenergebnisse,
+        Audit-Log, Gedächtnis — verbleiben zu 100&nbsp;% im Client-Browser. Das ist keine Option im
+        Einstellungs-Menü, sondern eine <strong>Invariante</strong> der Architektur: Sie lässt sich nicht
+        versehentlich „einschalten", weil sie schlicht nicht existiert.
+      </p>
+
+      <h3>1.2 Lokale Inferenz auf der eigenen GPU</h3>
+      <p>
+        Die Intelligenz kommt nicht aus dem Rechenzentrum, sondern von der GPU des eigenen Geräts. Über
+        <strong>WebGPU</strong> und <strong>WebLLM</strong> laufen quantisierte Open-Source-Modelle
+        (Qwen/Llama) direkt im Browser: ein kompakter <strong>„Wächter"</strong> (0,5&nbsp;B, läuft
+        permanent) und ein größerer <strong>„Planer"</strong> (3&nbsp;B, lädt bei Bedarf nach und wird
+        danach wieder entladen). Damit bleibt alles in einem realistischen VRAM-Budget (Zielprofil:
+        ≤&nbsp;4&nbsp;GB).
+      </p>
+
+      <h3>1.3 Autonomie im Browser</h3>
+      <p>
+        Ein Agent ist nur dann interessant, wenn er Aufgaben selbst zerlegen und ausführen kann — nicht nur
+        antworten. Deshalb hat das Projekt einen echten <strong>Agent-Loop</strong>: Der Planer zerlegt eine
+        Aufgabe in Teilaufgaben (fester JSON-Schema), ein Executor führt sie aus, ein Audit-Log dokumentiert
+        jeden Schritt — inkl. echter Token-Usage. Der Agent hat außerdem ein <strong>strukturiertes
+        Gedächtnis</strong> (Session, Task-Tree, Audit, Memory in IndexedDB) und kann es als JSON
+        exportieren/importieren.
+      </p>
+
+      <h3>1.4 Die eigentliche Frage: Forschung, nicht Produkt</h3>
+      <p>
+        Dahinter steht eine Forschungsfrage: <strong>Wie weit kommt ein autonomer Agent mit echtem
+        Gedächtnis, wenn er vollständig clientseitig leben muss?</strong> Wo sind die technischen Grenzen —
+        VRAM, Kontextlänge, WebGPU-Verfügbarkeit, Offline-Fähigkeit, Portabilität des Gedächtnisses?
+        Diese Grenzen wollen wir <em>messen und dokumentieren</em>, nicht behaupten. Deshalb ist das Projekt
+        ausdrücklich ein Experiment: Es gibt ein Benchmark-System, offene Forschungsfragen und einen
+        stufenweisen Plan mit Abbruchkriterien (siehe <a href="#forschung">Forschungsansatz</a>).
+      </p>
+
+      <h3>1.5 AAMS — Gedächtnis als natives Modell</h3>
+      <p>
+        Das Gedächtnis- und Task-Modell des Agenten ist <strong>AAMS</strong> (Autonomous Agent Mesh
+        System). Eine Besonderheit dieses Projekts: AAMS spielt <em>doppelt</em> eine Rolle und wird dabei
+        strikt getrennt:
+      </p>
+      <table class="doc-table">
+        <tr><th>Rolle</th><th>Was</th><th>Wo</th></tr>
+        <tr>
+          <td><strong>A — Arbeitsgrundlage</strong></td>
+          <td>Steuert den Entwicklungsprozess: Workpapers, Whitepapers, Langzeit-Memory, Diary</td>
+          <td>In diesem Repository (<code>WORKING/</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>B — Native Agenten-Architektur</strong></td>
+          <td>Das Gedächtnis- &amp; Task-Modell des Agenten selbst (Session, Task-Tree, Audit, Memory)</td>
+          <td>Im Browser des Nutzers (IndexedDB + JSON-Export)</td>
+        </tr>
+      </table>
+      <p>
+        Dasselbe Schema wird in beiden Rollen verwendet, die Instanzen bleiben getrennt. Für den Nutzer
+        heißt das: Der Agent <strong>versteht AAMS von Haus aus</strong> und baut seine eigene lokale
+        Wissens- und Task-Struktur exakt nach dieser Spezifikation auf.
+      </p>
+
+      <h2 id="ziel">2. Was ist das Ziel?</h2>
+
+      <h3>2.1 Kernziel</h3>
+      <p>
+        Ein <strong>vollständig clientseitiger, autonomer Webagent</strong> mit:
+      </p>
+      <ul class="tight">
+        <li>lokaler Inferenz auf der GPU (WebGPU/WebLLM) — keine Cloud für Kernprozesse (Invariante),</li>
+        <li>strukturiertem, session-bezogenem Gedächtnis (AAMS-B), portierbar per JSON-Export/Import,</li>
+        <li>eigener Task-Zerlegung und -Ausführung (echter Agent-Loop) mit nachvollziehbarer Audit-Spur,</li>
+        <li>prüfbar, reproduzierbar und ehrlich dokumentiertem Verhalten (Benchmark-System).</li>
+      </ul>
+
+      <h3>2.2 Forschungsziele (konkret)</h3>
+      <table class="doc-table">
+        <tr><th>#</th><th>Ziel</th><th>Warum</th></tr>
+        <tr>
+          <td>1</td>
+          <td><strong>Benchmark-System</strong> (Level L1–L10, ≤&nbsp;4&nbsp;GB-VRAM-Profil, Pass-Regel 5/5, Referenzgerät)</td>
+          <td>Ohne harte, programmatisch prüfbare Messung ist jede Aussage über „Funktioniert" unbelegt</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>Wächter-Spezialist</strong> (eigenes getuntes 0,5–1,5-B-Modell für Protokoll-Aufgaben)</td>
+          <td>Der Wächter läuft permanent — seine Zuverlässigkeit hat die größte Hebelwirkung (siehe <a href="#waechter">§6</a>)</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Offline nach Setup</strong></td>
+          <td>Ein „lokaler" Agent, der nach dem ersten Start noch Internet braucht, ist nicht souverän</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><strong>Gedächtnis-Portabilität</strong> (besser als JSON-Export/Import)</td>
+          <td>Heute: Gedächtnis ist an Browser+Origin gebunden — anderes Gerät = leeres Gedächtnis</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><strong>Datei-Output</strong> (Artefakte: HTML → ZIP → docx/xlsx)</td>
+          <td>Nachgewiesene Lücke: Aufgabe „6/6 erledigt", aber 0 Dateien — Ergebnisse müssen echte Dateien sein</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><strong>Helfer-Modelle</strong> (OCR / Übersetzung / Web-Fetch) on-demand</td>
+          <td>Spezialisten nur bei Bedarf im VRAM, danach wieder frei</td>
+        </tr>
+      </table>
+
+      <h3>2.3 Nicht-Ziele (bewusst)</h3>
+      <ul class="tight">
+        <li>Keine Cloud-Anbindung für Kernprozesse, keine automatische Cloud-Synchronisation</li>
+        <li>Keine Benutzerverwaltung, kein Multi-Agent-Mesh / WebRTC (spätere, eigene Phase)</li>
+        <li>Kein Generalisten-Training, kein Wettlauf mit großen Modellen</li>
+        <li>Kein Produkt-Versprechen: Dies ist Forschung — der Stand kann sich ändern, die Richtung bleibt</li>
+      </ul>
+
+      <h2 id="stand">3. Wo steht das Projekt?</h2>
+      <p>
+        Stand: <time datetime="2026-10-17">17. Oktober 2026</time> · Prototyp (Vite + TypeScript) ·
+        Lizenz: MIT · Mitarbeit willkommen (GitHub-Issues/PRs).
+      </p>
+
+      <h3>3.1 Umgesetzt</h3>
+      <table class="doc-table">
+        <tr><th>Bereich</th><th>Was kann es</th><th>Status</th></tr>
+        <tr>
+          <td><strong>Agent-Loop</strong></td>
+          <td>Echte Zerlegung (Planer-JSON → Task-Tree) + echte Ausführung (Executor-Regel) mit echter Token-Usage und Audit-Spur (<code>llm.*</code>, <code>plan.*</code>, <code>chat.*</code>)</td>
+          <td><span class="badge ok">umgesetzt</span></td>
+        </tr>
+        <tr>
+          <td><strong>Modell-Pool</strong></td>
+          <td>Wächter (Qwen2.5 0.5B, ≈945&nbsp;MB) resident + Planer (Llama-3.2 3B, ≈2,3&nbsp;GB) on-demand · Modell-Katalog ≤&nbsp;4&nbsp;GB · Laden/Entladen, Download-Fortschritt, DEGRADED-State, VRAM-Budget-Balken</td>
+          <td><span class="badge ok">umgesetzt</span></td>
+        </tr>
+        <tr>
+          <td><strong>Chat</strong></td>
+          <td>Einziger Dialogkanal, Intent-gesteuert: Status · „beginne" → Ausführung · Aufgabe → Planer + automatischer Loop · Frage → Planer antwortet</td>
+          <td><span class="badge ok">umgesetzt</span></td>
+        </tr>
+        <tr>
+          <td><strong>Dashboard</strong></td>
+          <td>Dunkler App-Frame (3 Spalten): Rollen-Karten, VRAM-Bar, Tabs <strong>Zuschauen</strong> (Live-Feed) / <strong>Arbeit</strong> (Task-Tree) / <strong>Audit</strong> (filterbar) / <strong>Gedächtnis</strong></td>
+          <td><span class="badge ok">umgesetzt</span></td>
+        </tr>
+        <tr>
+          <td><strong>Artefakte</strong></td>
+          <td>HTML-Ergebnisse deterministisch aus <code>task.result</code> extrahiert (kein Schema-Eingriff) → Sandbox-Vorschau (ohne <code>allow-same-origin</code>) + Download + Audit</td>
+          <td><span class="badge ok">umgesetzt</span></td>
+        </tr>
+        <tr>
+          <td><strong>Gedächtnis</strong></td>
+          <td>AAMS-B in IndexedDB (Session, Tasks, Audit, Memory, Knowledge) · „Neue Session" mit automatischem Safety-Export + Rollback · JSON-Export/Import (portabel, mit Schema-Prüfung)</td>
+          <td><span class="badge ok">umgesetzt</span></td>
+        </tr>
+        <tr>
+          <td><strong>KERN</strong></td>
+          <td>Prototyp: Tokenwächter (Kontext-Grenzenwächter) + mechanischer Loop (simuliert) — Grundlage für die echten Loops</td>
+          <td><span class="badge ok">umgesetzt</span></td>
+        </tr>
+        <tr>
+          <td><strong>Benchmark-System</strong></td>
+          <td>Fixiert als Whitepaper WH-002: Level L1–L10, ≤&nbsp;4-GB-Profil, Metriken, Pass-Regel 5/5, Reproduzierbarkeits-Protokoll, Geräterollen</td>
+          <td><span class="badge ok">definiert</span> <span class="badge open">1. Testlauf offen</span></td>
+        </tr>
+        <tr>
+          <td><strong>Live-Demo</strong></td>
+          <td>Statisch gehostet (HuggingFace-Static-Space), App + Assets verifiziert</td>
+          <td><span class="badge ok">live</span></td>
+        </tr>
+      </table>
+
+      <h3>3.2 Noch offen</h3>
+      <table class="doc-table">
+        <tr><th>Punkt</th><th>Status</th></tr>
+        <tr>
+          <td>Erster Benchmark-Testlauf (L1 auf dem Referenzgerät — GTX 1050 4&nbsp;GB, Variante zu verifizieren)</td>
+          <td><span class="badge open">offen — erster Schritt</span></td>
+        </tr>
+        <tr>
+          <td>Benchmark-Seite (Szenario-Textseiten L1–L5, Start, Run-Report) + Panel „Maschine"</td>
+          <td><span class="badge open">offen</span></td>
+        </tr>
+        <tr>
+          <td>Helfer-Modelle (OCR / Übersetzung / Web-Fetch) via Transformers.js</td>
+          <td><span class="badge open">offen</span></td>
+        </tr>
+        <tr>
+          <td>Automatisierte Tests (Vitest) für Gedächtnis, Task-Queue, Modell-Pool</td>
+          <td><span class="badge open">offen</span></td>
+        </tr>
+        <tr>
+          <td>Browser-Checklisten der letzten UI-/Artefakt-Arbeiten (Abschluss-Tests)</td>
+          <td><span class="badge open">offen</span></td>
+        </tr>
+        <tr>
+          <td>PWA / Offline-Cache für die Weights (Forschungsziel 3)</td>
+          <td><span class="badge no">bewusst nicht vor Messung</span></td>
+        </tr>
+      </table>
+
+      <div class="note">
+        <strong>Ehrlichkeit-Hinweis:</strong> Die Weights (≈&nbsp;945&nbsp;MB Wächter / ≈&nbsp;2,3&nbsp;GB
+        Planer) werden beim <em>ersten</em> Laden vom CDN heruntergeladen (Setup) — danach Browser-Cache.
+        WebGPU ist eine Pflicht-Voraussetzung: Chrome/Edge. Firefox/Safari: aktuell nicht verfügbar.
+      </div>
+
+      <h2 id="forschung">4. Der Forschungsansatz</h2>
+
+      <h3>4.1 Grundprinzipien</h3>
+      <ul class="tight">
+        <li><strong>Messen, nicht raten:</strong> Jede Aussage über Besserung braucht einen Benchmark-Vergleich. Keine erfundenen Messwerte.</li>
+        <li><strong>Hard DoD:</strong> Erfolg ist ein hartes, programmatisch geprüftes 0/1 (z.&nbsp;B. valide JSON ohne Retry), keine „klingt plausibel".</li>
+        <li><strong>Strikte Train/Test-Trennung:</strong> Auf dem Benchmark trainiert wurde, misst nichts. Test-Szenarien sind zurückgehalten.</li>
+        <li><strong>Nur geprüfte Daten:</strong> Programmatisch verifizierte Ergebnisse gelten als Beleg — kein Modell bewertet sich selbst.</li>
+        <li><strong>Ehrliche Grenzen:</strong> Grenzen werden benannt (VRAM, Kontext, Browser), nie still verschwiegen. Ein „nicht möglich" ist ein gültiges Ergebnis.</li>
+        <li><strong>Abbruchkriterien:</strong> Jeder Forschungsplan hat Stufen mit klaren Abbruch-Bedingungen — auch Abbruch wird dokumentiert.</li>
+        <li><strong>Reproduzierbarkeit:</strong> Commit-Hash, Modell-Revision, Seed, Tool-Versionen werden festgehalten.</li>
+        <li><strong>Lizenz zuerst:</strong> Basismodelle, Lehrermodelle und Quellen werden vor Nutzung geprüft.</li>
+      </ul>
+
+      <h3>4.2 Doku-Kette (AAMS-Dev-Prozess, Rolle A)</h3>
+      <p>
+        Der Entwicklungsprozess ist selbst Teil des Experiments: Jede Arbeits-Einheit startet mit einem
+        <strong>Workpaper</strong> (offen, mit Autor:in und Auftrag), stabil gewordene Wahrheiten steigen in
+        ein <strong>Whitepaper</strong> auf (mit Decision Records — nachvollziehbare Entscheidungen mit
+        Begründung und Alternativen), und Langzeit-Kontext wird in einem <strong>LTM-Index</strong>
+        geführt. Die Kette wird nicht übersprungen: Workpaper → Whitepaper → LTM. Das komplette Repo
+        (<code>WORKING/</code>) ist offen einsehbar — man kann also sehen, <em>wie</em> das Projekt entsteht.
+      </p>
+
+      <h3>4.3 Benchmark-Protokoll (WH-002, Auszug)</h3>
+      <p>
+        Das Benchmark-System definiert eine stabile Level-Achse — die Anzahl der Teilaufgaben und der
+        Charakter steigen mit dem Level:
+      </p>
+      <table class="doc-table">
+        <tr><th>Level</th><th>Teilaufgaben</th><th>Charakter</th></tr>
+        <tr><td>L1</td><td>1</td><td>einfache Aufgabe, keine Zerlegung</td></tr>
+        <tr><td>L2</td><td>2</td><td>minimale Zerlegung</td></tr>
+        <tr><td>L3</td><td>3</td><td>Standard-Zerlegung</td></tr>
+        <tr><td>L4</td><td>4</td><td>ein Zwischenergebnis fließt in Teilaufgabe 4 ein</td></tr>
+        <tr><td>L5</td><td>5</td><td>Zwischenergebnisse + finales Artefakt</td></tr>
+        <tr><td>L6–L9</td><td>6–9</td><td>Skizze — bei Bedarf ausformulieren</td></tr>
+        <tr><td>L10</td><td>~10</td><td>kleine App: planen + bauen + HTML-Übersicht (Kern-Proof)</td></tr>
+      </table>
+      <p>VRAM-Budget im ≤&nbsp;4-GB-Profil (Ground-Truth: WebLLM-Lib-Metadaten):</p>
+      <table class="doc-table">
+        <tr><th>Kombination</th><th>VRAM (≈)</th><th>Passt in ≤ 4096 MB?</th></tr>
+        <tr><td>Wächter Qwen2.5-0.5B allein</td><td>944,62 MB</td><td><span class="badge ok">✅ ~3,1 GB Reserve</span></td></tr>
+        <tr><td>Wächter + Planer Llama-3.2-3B</td><td>3208,31 MB</td><td><span class="badge open">⚠ ~0,8 GB Reserve (beobachten!)</span></td></tr>
+        <tr><td>Wächter + Fallback Qwen2.5-1.5B</td><td>2574,37 MB</td><td><span class="badge ok">✅ ~1,5 GB Reserve</span></td></tr>
+        <tr><td>7B-Modelle</td><td>&gt; 5100 MB</td><td><span class="badge no">❌ außerhalb des Zielprofils</span></td></tr>
+      </table>
+      <p>
+        Gemessen wird pro Lauf (automatisch in das Gedächtnis geloggt): harter DoD (0/1), Score (0–3),
+        geplante Teilaufgaben, echte Token-Usage (Prompt/Completion/Total), Zeit, VRAM (geladen + OOM-Events),
+        Flush-Zyklen und <strong>KERN-Integrität</strong> (nichts nach einem Kontext-Flush verloren —
+        Invariante). Pass-Regel: <strong>5/5</strong> — und „bewiesen" gilt nur auf dem
+        <strong>Referenzgerät</strong> (GTX 1050 4&nbsp;GB, Variante zu verifizieren), nicht auf dem
+        Dev-Gerät (RTX 5090). WebGPU-Determinismus ist nicht garantiert → Läufe werden mehrfach wiederholt
+        und die Streuung angegeben.
+      </p>
+
+      <h3>4.4 Offene Forschungsfragen (Auswahl)</h3>
+      <table class="doc-table">
+        <tr><th>#</th><th>Frage</th><th>Status</th></tr>
+        <tr><td>1</td><td>Offline nach Setup: Was darf der Service Worker zuverlässig cachen? App-Shell ja; Weights (1–2,5&nbsp;GB) → Quota-/CacheStorage-Verhalten je Browser <em>messen</em></td><td><span class="badge open">offen</span></td></tr>
+        <tr><td>2</td><td>AAMS-B &amp; Origin: Gedächtnis ist an Browser+Origin gebunden — reicht JSON-Export/Import, oder brauchen wir eine Brücke (OPFS + File-System-Access)?</td><td><span class="badge open">offen</span></td></tr>
+        <tr><td>3</td><td>WebGPU-Verfügbarkeit: Welche Browser/Devices können es (Chrome/Edge ja; Firefox/Safari zu prüfen)? Capability-Check + saubere Meldung im UI</td><td><span class="badge open">offen</span></td></tr>
+        <tr><td>4</td><td>Modell-Updates: Wie versionieren wir Weights (Revision pro Modell), wie veralten Caches, wie migrieren Nutzer?</td><td><span class="badge open">offen</span></td></tr>
+        <tr><td>5</td><td>Browser-Extension (Web-Zugriff-Brücke): sinnvoll nur am selben Gerät — wie verteilen/aktualisieren?</td><td><span class="badge open">offen</span></td></tr>
+        <tr><td>6</td><td>Sicherheit/Hosting: CSP-Header, keine Secrets in der App, Web-Zugriff nur über geprüfte Brücke (untrusted-Daten-Regel)</td><td><span class="badge open">offen</span></td></tr>
+      </table>
+
+      <h3>4.5 Erweiterungs-Proposal (V1–V5, geprüft)</h3>
+      <table class="doc-table">
+        <tr><th>#</th><th>Vorschlag</th><th>Prüfergebnis</th></tr>
+        <tr><td>V1</td><td>OPFS (Origin Private File System) für größere Kapazität</td><td><span class="badge ok">✅ machbar</span></td></tr>
+        <tr><td>V2</td><td>Browser-Extension als Web-Zugriff-Brücke (untrusted-Daten-Regel)</td><td><span class="badge ok">✅ optional, zuletzt</span></td></tr>
+        <tr><td>V3</td><td>Pyodide (Python in der Browser-Sandbox)</td><td><span class="badge ok">✅ erst nach 5/5-Proof</span></td></tr>
+        <tr><td>V4</td><td>Artefakte: Ergebnisse als echte Dateien</td><td><span class="badge ok">✅ Schritt 1 (HTML) umgesetzt, ZIP folgt</span></td></tr>
+        <tr><td>V5</td><td>„Hermes-lite" im Pool</td><td><span class="badge open">1–4 ja / 5.5 abgelehnt</span> (kein passendes Modell ≤&nbsp;4&nbsp;GB im Katalog)</td></tr>
+      </table>
+      <p>Vorgeschlagene Reihenfolge: V4 → V1 → V5 → V3 → V2 — jede Stufe erst nach menschlicher Freigabe.</p>
+
+      <h2 id="probleme">5. Offene Probleme — was es zu lösen gilt</h2>
+      <p>
+        Diese Liste ist <strong>bewusst gesondert</strong>: Hier stehen die Probleme, die wir kennen und die
+        es in Zukunft zu lösen gilt. Bei jedem Punkt steht, <em>warum</em> er wichtig ist und <em>in welche
+        Richtung</em> wir nach besseren Wegen und besseren Lösungen suchen. Die aktuelle Lösung ist bei
+        keinem Punkt als final zu verstehen — genau das ist der Punkt der Forschung.
+      </p>
+      <table class="doc-table">
+        <tr><th style="width:26%">Problem</th><th>Warum es wichtig ist</th><th>Bessere Wege / was wir suchen</th></tr>
+        <tr>
+          <td><strong>P1 · Offline nach Setup</strong></td>
+          <td>Ein „lokaler" Agent, der nach dem ersten Start noch Internet braucht, ist nicht souverän. Weights (≈3&nbsp;GB) + Cache-Quota sind je Browser unbekannt</td>
+          <td>Zuverlässige Cache-Strategie messen (Service Worker, CacheStorage vs. OPFS), selbst gehostete Weights, Update-/Versions-Strategie — pro Browser messen, nicht raten</td>
+        </tr>
+        <tr>
+          <td><strong>P2 · Gedächtnis an Browser+Origin gebunden</strong></td>
+          <td>Anderes Gerät oder Browser = leeres Gedächtnis. Heute gibt es nur JSON-Export/Import (manuell)</td>
+          <td>Bessere Portabilität: OPFS + File-System-Access-API, lokale Synchronisations-Konzepte, bessere Import-/Merge-UX — ohne Cloud (Invariante bleibt)</td>
+        </tr>
+        <tr>
+          <td><strong>P3 · WebGPU-Verfügbarkeit</strong></td>
+          <td>Chrome/Edge ja, Firefox/Safari nein — ein Teil der Nutzer kann das Projekt nicht nutzen</td>
+          <td>Besserer Capability-Check + ehrliche Meldung im UI; langfristig: Alternativen prüfen (WASM-Runtimes, andere Backends) — als eigene Studie, nicht als Stillstand</td>
+        </tr>
+        <tr>
+          <td><strong>P4 · Modell-Updates &amp; Caches</strong></td>
+          <td>Neue Quantisierungen/Revisionen: Wie veralten Caches? Wie kommen Nutzer zu besseren Modellen, ohne zu verlieren?</td>
+          <td>Revisionssystem pro Modell, saubere Cache-Invalidation, Migrations-Pfad — Teil des Benchmark-Protokolls (Reproduzierbarkeit)</td>
+        </tr>
+        <tr>
+          <td><strong>P5 · Kontextfenster (4096 Tokens)</strong></td>
+          <td>Für größere Aufgaben zu klein; der Tokenwächter muss Kontext flushen — dabei darf nichts verloren gehen (Invariante)</td>
+          <td>Progressive Disclosure (nur benötigte Kontext-Schnitte), bessere Memory-Kompression/Reflexion, längere Kontexte nur, wenn das VRAM-Profil es hergibt</td>
+        </tr>
+        <tr>
+          <td><strong>P6 · Datei-Output</strong></td>
+          <td>Nachgewiesene Lücke: eine Website-Aufgabe lief „6/6 erledigt" — aber 0 Dateien. Ein Agent ohne echte Dateien ist unvollständig</td>
+          <td>Artefakt-Pipeline (V4): HTML (fertig) → ZIP/mehrdateiig → docx/xlsx; File-System-Access für direkten Speicherort-Wunsch</td>
+        </tr>
+        <tr>
+          <td><strong>P7 · Reproduzierbarkeit auf WebGPU</strong></td>
+          <td>Inferenz ist nicht deterministisch garantiert — Benchmark-Ergebnisse sind nur im Rahmen der Streuung vergleichbar</td>
+          <td>Besseres Protokoll: mehr Läufe, fixierte Seeds wo möglich, Spannweite ausweisen, „bewiesen" nur auf dem Referenzgerät</td>
+        </tr>
+        <tr>
+          <td><strong>P8 · VRAM auf kleinen GPUs</strong></td>
+          <td>Wächter + Planer lassen im 4-GB-Profil nur ≈0,8&nbsp;GB Reserve — enger als gedacht</td>
+          <td>Besseres VRAM-Budget mit Systemreserve, Quantisierungs-Wahl via Capability-Gate (<code>shader-f16</code> → q4f16_1, sonst q4f32_1), Fallback-Pfade</td>
+        </tr>
+        <tr>
+          <td><strong>P9 · Training: Daten &amp; Qualität</strong></td>
+          <td>Für den Wächter-Spezialisten: Daten-Leckage, Lehrer-Fehler, Lizenzen, Quantisierungs-Verlust — alles kann den Tuning-Nutzen aufzehren</td>
+          <td>Strikter Split, nur programmatisch geprüfte Daten, lizenzkonforme Lehrermodelle, Vor-/Nach-Messung des Exports (Details in <a href="#waechter">§6</a>)</td>
+        </tr>
+        <tr>
+          <td><strong>P10 · Distribution &amp; Sicherheit</strong></td>
+          <td>Hosting (CSP, Model-CDN) und die Web-Zugriff-Brücke (Extension) müssen sicher bleiben, ohne die Invariante „keine Secrets in der App" zu brechen</td>
+          <td>Besseres Hosting-Setup (ggf. selbst gehostetes Weights-CDN), untrusted-Daten-Regel für alles Webseitige, saubere Capability-Grenzen</td>
+        </tr>
+      </table>
+      <div class="warn">
+        <strong>Meta-Regel:</strong> Diese Liste ist lebendig. Ein Problem, das gelöst ist, wandert mit Beleg
+        (Benchmark/Decision Record) in ein Whitepaper — und verschwindet von dieser Liste. Ein Problem, das
+        widerlegt wird (z.&nbsp;B. „Training lohnt sich nicht"), ist ein <em>gültiges</em> Ergebnis und wird
+        ebenfalls dokumentiert.
+      </div>
+
+      <h2 id="waechter">6. Ein eigenes Modell für den Wächter</h2>
+      <p>
+        Der Wächter ist die permanent geladene Instanz des Agenten (≈945&nbsp;MB, resident). Er führt die
+        engen <strong>Protokoll-Aufgaben</strong> aus: Planer-JSON im festen Schema, Tool-Aufruf-JSON,
+        Skill-Routing und Memory-Zusammenfassungen. Genau deshalb ist er der interessanteste Kandidat für ein
+        <strong>eigenes, getuntes Modell</strong>.
+      </p>
+
+      <h3>6.1 Der Ansatz</h3>
+      <ul class="tight">
+        <li>Ein schmales Modell (<strong>0,5–1,5&nbsp;B</strong>), zugeschnitten auf die Protokoll-Aufgaben, das im ≤&nbsp;4-GB-VRAM-Profil läuft.</li>
+        <li><strong>Hypothese:</strong> Ein getunter Spezialist ist in diesen engen, prüfbaren Aufgaben <em>zuverlässiger</em> als das ungetunte Basismodell — bei gleicher Größe. Er ist ausdrücklich <strong>kein</strong> Generalist.</li>
+        <li>Stufenplan mit Abbruchkriterien (0–5), jede Stufe endet mit ehrlicher Auswertung — auch bei Abbruch:</li>
+      </ul>
+      <table class="doc-table">
+        <tr><th>Stufe</th><th>Inhalt</th><th>Abbruch / Weiter</th></tr>
+        <tr><td><strong>0</strong></td><td>Datenerfassung: jeder Lauf loggt Prompts, Antworten, Prüf-Ergebnisse, Versionen als JSONL (kein Training)</td><td>Weiter, sobald Format stabil</td></tr>
+        <tr><td><strong>1</strong></td><td><strong>Baseline ohne Training:</strong> Prompt-Optimierung + schemabasierte JSON-Ausgabe</td><td><strong>Wenn die Baseline schon ≥ Zielwert → Training überflüssig, Stufen 2+ streichen</strong></td></tr>
+        <tr><td><strong>2</strong></td><td>Datensatz-Aufbau: Lehrermodell + Filter, strikter Train/Val/Test-Split, Dubletten-Check</td><td>Weiter bei genügend geprüften Beispielen je Task</td></tr>
+        <tr><td><strong>3</strong></td><td>Erstes Tuning (LoRA/QLoRA) auf 0,5&nbsp;B, ggf. 1,5&nbsp;B</td><td>Abbruch, wenn Val-Metriken nicht besser als Baseline</td></tr>
+        <tr><td><strong>4</strong></td><td>Export für WebGPU: Adapter zusammenführen, quantisieren, kompilieren, in WebLLM laden</td><td>Abbruch, wenn Export Qualität oder VRAM-Profil bricht</td></tr>
+        <tr><td><strong>5</strong></td><td>Benchmark-Vergleich Base vs. Tuned im selben Protokoll (WH-002)</td><td>Entscheidung über Aufnahme in den Pool (Decision Record)</td></tr>
+      </table>
+      <p>
+        Messgrößen (Base vs. Tuned, identische Bedingungen): Schema-Validität ohne Retry, Tool-Wahl und
+        Parameter korrekt, Retry-Rate, harter DoD-Erfolg, Token/Zeit pro Aufgabe, VRAM-Spitze — und
+        Test-Set-Leistung <em>getrennt</em> von Val-Leistung, damit Überanpassung sichtbar bleibt.
+        „Besser" heißt: Verbesserung <strong>außerhalb der Streuung</strong> auf dem Test-Split.
+      </p>
+
+      <h3>6.2 Sinnhaftigkeit &amp; erwarteter Nutzen</h3>
+      <ul class="tight">
+        <li><strong>Höhere Zuverlässigkeit genau dort, wo sie am meisten zählt:</strong> Der Wächter läuft permanent und ist die „Stimme" des Agenten. Wenn er Planer-JSON und Tool-Aufrufe ohne Retry sauber erzeugt, wird der gesamte Loop stabiler.</li>
+        <li><strong>Weniger Retry = weniger Latenz und weniger Token:</strong> Jede vermiedene Wiederholung spart Zeit und VRAM-Druck — im 4-GB-Profil ein reales Budget.</li>
+        <li><strong>Prüfbar und begrenzt:</strong> Die Aufgaben sind eng und programmatisch prüfbar (Schema, DoD). Das macht den Nutzen messbar — im Gegensatz zu vagen „bessere Antworten".</li>
+        <li><strong>Ehrliche Einordnung:</strong> Ein getunter Wächter wird nicht als „intelligent" beschrieben, sondern als „zuverlässig im Protokoll". Er ersetzt keinen Generalisten — er entlastet ihn.</li>
+      </ul>
+
+      <h3>6.3 Die Probleme (bewusst sichtbar)</h3>
+      <table class="doc-table">
+        <tr><th>Problem</th><th>Gegenmaßnahme / wie wir es prüfen</th></tr>
+        <tr><td>Daten-Leckage / Auswendiglernen des Benchmarks</td><td>Strikter Split: Test-Szenarien <em>nie</em> im Training; Dubletten-Check; zurückgehaltene Zusatz-Szenarien</td></tr>
+        <tr><td>Lehrer-Fehler im Trainingssatz</td><td>Nur programmatisch geprüfte Beispiele (Schema + DoD) — kein Modell bewertet sich selbst</td></tr>
+        <tr><td>Überanpassung auf das Protokoll, Verlust von Allgemeinwissen</td><td>Aufgabe bewusst eng halten; Generalisten-Leistung wird nicht versprochen (Leitplanke T7)</td></tr>
+        <tr><td>Quantisierung/Export bricht die Qualität</td><td>Stufe 4 misst vor/nach Export; Abbruchkriterium, wenn das VRAM-Profil oder die Qualität bricht</td></tr>
+        <tr><td>Lizenzen (Basismodell + Lehrermodell)</td><td>Vor Stufe 2 abschließen: Lizenzen selbst lesen, dokumentieren, abgeleitete Modelle prüfen</td></tr>
+        <tr><td>„Moving Target": Der Agent verändert sich laufend</td><td>Commit-Hash, Tool-Registry- und Skill-Version in jedem Datensatz festgehalten</td></tr>
+        <tr><td>Aufwand unterschätzt</td><td>Abbruchkriterien pro Stufe — und Stufe 1 kann den ganzen Plan beenden („Baseline reicht schon")</td></tr>
+      </table>
+
+      <div class="note">
+        <strong>Status:</strong> Der Plan ist als Research-Plan verfasst (WP-TRAIN-PLAN) und steht zur
+        Prüfung bereit. Stufe 0 (Datenerfassung) ist noch nicht umgesetzt; jede Stufe beginnt erst nach
+        menschlicher Freigabe. Es wird nicht trainiert, bevor die Baseline gemessen ist.
+      </div>
+
+      <h2 id="links">7. Links</h2>
+      <ul class="tight">
+        <li><strong>Demo:</strong> <a href="https://huggingface.co/spaces/ogerl/webgpu-agent">huggingface.co/spaces/ogerl/webgpu-agent</a> (Chrome/Edge mit WebGPU)</li>
+        <li><strong>Code (MIT):</strong> <a href="https://github.com/ogerly/webgpu-agent">github.com/ogerly/webgpu-agent</a> — inkl. vollständiger Doku-Kette (<code>WORKING/</code>)</li>
+        <li><strong>Projekt-Vision (Whitepaper-Quelle):</strong> <code>idee.md</code> im Repository</li>
+        <li><strong>Beispiel-Projekte des Autors:</strong> <a href="https://github.com/ogerly/AAMS">AAMS</a> · <a href="https://github.com/ogerly/webgpu-arena">webgpu-arena</a></li>
+        <li><strong>Mitarbeit:</strong> Feedback, Issues und Pull Requests sind willkommen — siehe README des Repositories.</li>
+      </ul>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="inner">
+      <span>© 2026 · webgpu-agent — privates Forschungsprojekt (WIP)</span>
+      <a href="impressum.html">Impressum</a>
+    </div>
+  </footer>
+</body>
+</html>
