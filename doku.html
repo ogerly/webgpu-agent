@@ -14,8 +14,11 @@
       --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body { margin: 0; background: var(--bg); color: var(--txt); line-height: 1.65;
            font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif; }
+    .hl { animation: hl 1.8s ease-out; border-radius: 10px; }
+    @keyframes hl { 0% { background: rgba(77,163,255,.22); } 100% { background: transparent; } }
     a { color: var(--acc); }
     code { font-family: var(--mono); background: var(--panel2); border: 1px solid var(--line);
            padding: 0 5px; border-radius: 5px; font-size: .88em; }
@@ -104,6 +107,11 @@
         <li><a href="#waechter">Ein eigenes Modell für den Wächter</a></li>
         <li><a href="#links">Links</a></li>
       </ol>
+      <p class="meta" style="margin:10px 0 0">
+        <strong>Deep-Links (Anker):</strong> <code>doku.html#warum</code> · <code>#ziel</code> ·
+        <code>#stand</code> · <code>#forschung</code> · <code>#probleme</code> · <code>#waechter</code> ·
+        <code>#links</code> — und aus der App: <code>index.html#doku</code> bzw. <code>index.html#doku/probleme</code>
+      </p>
     </nav>
 
     <h2 id="warum">1. Warum machen wir das?</h2>
@@ -534,5 +542,21 @@
       <li><strong>Mitarbeit:</strong> Feedback, Issues und Pull Requests sind willkommen — siehe README des Repositories.</li>
     </ul>
   </main>
+
+  <script>
+    // Anker-Navigation (WP-APP-DOKU): Ziel-Sektion sanft einscrollen + kurz hervorheben,
+    // wenn die Seite mit Anker geöffnet wird (Deep-Link aus App/Chat/Foren).
+    (function () {
+      const id = window.location.hash.slice(1);
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      requestAnimationFrame(function () {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.classList.add("hl");
+        setTimeout(function () { el.classList.remove("hl"); }, 1800);
+      });
+    })();
+  </script>
 </body>
 </html>

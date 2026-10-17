@@ -84,6 +84,7 @@ src/
 > App läuft in der Space-Seite) ·
 > **Doku:** `https://ogerl-webgpu-agent.static.hf.space/doku.html` — **Unterseite der App**
 > (Warum/Ziel/Stand/Forschungsansatz/Offene Probleme/Wächter-Modell; Quelle: `doku.html`, 📖-Link in der App-Topbar) ·
+> Deep-Links: `doku.html#probleme`, `doku.html#waechter` … · aus der App: `index.html#doku` / `index.html#doku/probleme` ·
 > **Code:** `https://github.com/ogerly/webgpu-agent` (GitHub = **nur Code** — **kein Pages, kein Actions**).
 > `dist/` (6 MB) als HuggingFace-Static-Space hochgeladen; index.html + JS + CSS verifiziert (HTTP 200,
 > JS byte-identisch zum lokalen Build). Details: `WORKING/WORKPAPER/WP-2026-10-17-DEPLOY-webgpu-agent-deploy-optionen.md` §4.

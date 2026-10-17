@@ -21,6 +21,7 @@ App-Topbar. GitHub bleibt weiterhin nur Code (kein Pages — User-Entscheidung).
 | `vite.config.ts` | ✅ Multi-Page: `build.rollupOptions.input = { main: index.html, doku: doku.html }` → Build erzeugt `dist/doku.html` (relative Pfade, `base: "./"` bleibt) |
 | `index.html` (App) | ✅ Topbar: Link **📖 Doku** → `./doku.html` |
 | `src/ui/theme.css` | ✅ `a.tag` (Klick-Tag für die Doku-Verlinkung) |
+| **Anker / Deep-Links (Erweiterung 2)** | ✅ **`#doku`-Hash-Routing in `src/main.ts`** (JS): `index.html#doku` → `doku.html` · `index.html#doku/<sektion>` → `doku.html#<sektion>` · Doku-Anker (`#warum`, `#ziel`, `#stand`, `#forschung`, `#probleme`, `#waechter`, `#links`) mit **sanftem Scrollen + Hervorhebung** (JS in `doku.html`) + Deep-Link-Liste in der TOC · direkter Aufruf bleibt `…/doku.html` (statisch, ohne JS nutzbar) |
 | Space (Live) | ✅ `dist/doku.html` + aktualisierte `index.html` hochgeladen → **LIVE**: `https://ogerl-webgpu-agent.static.hf.space/doku.html` · überflüssige Root-Dateien `dokumentation.html` + `style.css` (Session-Artefakte) aus dem Space entfernt |
 | README / social.md | ✅ Doku-Link auf die App-Unterseite `/doku.html` gesetzt |
 | `website/dokumentation.html` | bleibt als Referenz-Kopie (nicht gelöscht); Hinweis auf `doku.html` als kanonische Seite ergänzt |

@@ -249,13 +249,21 @@ async function handleReset(doc: AAMSDocument, wga: WGA, kern: KernSupervisor): P
   }
 }
 
-boot().catch((e: unknown) => {
-  const msg = e instanceof Error ? e.message : String(e);
-  const box = document.querySelector<HTMLDivElement>("#msgs");
-  if (box) {
-    const d = document.createElement("div");
-    d.className = "m sys";
-    d.textContent = `Boot fehlgeschlagen: ${msg}`;
-    box.appendChild(d);
-  }
-});
+// Doku via Anker (WP-APP-DOKU): "#doku" oder "#doku/<sektion>" öffnet die Doku-Unterseite
+// (z. B. index.html#doku → doku.html, index.html#doku/probleme → doku.html#probleme).
+const dokuHash = window.location.hash;
+if (dokuHash === "#doku" || dokuHash.startsWith("#doku/")) {
+  const section = dokuHash.startsWith("#doku/") ? dokuHash.slice("#doku/".length) : "";
+  window.location.replace("./doku.html" + (section ? "#" + section : ""));
+} else {
+  boot().catch((e: unknown) => {
+    const msg = e instanceof Error ? e.message : String(e);
+    const box = document.querySelector<HTMLDivElement>("#msgs");
+    if (box) {
+      const d = document.createElement("div");
+      d.className = "m sys";
+      d.textContent = `Boot fehlgeschlagen: ${msg}`;
+      box.appendChild(d);
+    }
+  });
+}
