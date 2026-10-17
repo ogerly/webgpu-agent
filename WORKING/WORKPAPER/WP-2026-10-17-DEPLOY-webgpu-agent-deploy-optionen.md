@@ -67,7 +67,8 @@ jede Option unten ist nur ein **Weg, die Dateien zum Browser zu bringen**.
 | HuggingFace Space | ✅ **LIVE:** Space `ogerl/webgpu-agent` (sdk **static**, Region us) · `dist/` hochgeladen (index.html + 3 Assets, 6 MB) + `app.yaml` (`sdk: static`) · `runtime.stage = RUNNING` |
 
 **Ergebnis (2026-10-17):**
-1. **GitHub** — bleibt reine Quelle (main + `gh-pages`-Branch liegen als Fallback bereit) · Billing-Sperre wird damit für den Deploy irrelevant.
+1. **GitHub** — bleibt **reiner Code-Stand** (User-Entscheidung: **kein Pages, kein Actions**; `gh-pages`-Branch liegt nur historisch bereit) · Billing-Sperre wird damit für den Deploy irrelevant.
+3. **Offizieller Demo-Link** = **Space-URL** `https://huggingface.co/spaces/ogerl/webgpu-agent` (Space-Seite embeddet die App per iframe) · Raw-App: `https://ogerl-webgpu-agent.static.hf.space/`.
 2. **HF-Token** — ✅ ersetzt (Write, `whoami-v2`: User `ogerl`) → Space angelegt, `dist/` hochgeladen, Live-Verifikation bestanden.
 
 **Live-Verifikation (2026-10-17):**
@@ -77,7 +78,7 @@ jede Option unten ist nur ein **Weg, die Dateien zum Browser zu bringen**.
 | Space | ✅ `GET /api/spaces/ogerl/webgpu-agent` → `sdk: static`, `runtime.stage = RUNNING`, 1 Replica |
 | App-URL | ✅ `https://ogerl-webgpu-agent.static.hf.space/` → `index.html`, Title „webgpu-agent · Dashboard", HTTP 200 |
 | Assets | ✅ `assets/index-B0iE_Kq-.js` (40 104 B, HTTP 200, **byte-identisch** zu `dist/`) · `assets/index-BdmpRsKy.css` (11 509 B, HTTP 200) |
-| Space-Seite | ℹ️ `https://huggingface.co/spaces/ogerl/webgpu-agent` zeigt die Space-Hülle; die **App** läuft auf der Subdomain `*.static.hf.space` (dort injiziert die Plattform ein kleines `window.huggingface`-Meta-Skript im `<head>` — ohne Wirkung auf die App) |
+| Demo-Link (offiziell) | ✅ `https://huggingface.co/spaces/ogerl/webgpu-agent` — Space-Seite embeddet die App per iframe (`src="https://ogerl-webgpu-agent.static.hf.space/index.html"`, verifiziert) · Plattform injiziert dort ein kleines `window.huggingface`-Meta-Skript (ohne Wirkung auf die App) |
 
 **Bekannt / erwartet (Forschungsfragen 1–3):**
 - Weights (≈ 945 MB Wächter / ≈ 2,3 GB Planer) kommen **beim ersten Laden** vom CDN (Setup, L2 erlaubt) — danach: Browser-Cache.

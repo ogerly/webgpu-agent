@@ -8,6 +8,20 @@ Keine Cloud, keine Serverinfrastruktur → maximale Datensouveränität.
 > **Benchmark-System (Level 1–10, ≤ 4 GB VRAM):** `WORKING/WHITEPAPER/WH-002-BENCH-benchmark-levels-webgpu.md`
 > **Dev-Prozess:** `READ-AGENT.md` + `.agent.json` (AAMS/2.6.0)
 
+![Dashboard: Modell-Pool (Wächter/Planer), Chat, Tabs Zuschauen/Arbeit/Audit/Gedächtnis](src/public/images/screenshot.png)
+
+## Projekt-Natur (WIP / Experiment)
+
+> **Dies ist ein privates Forschungsprojekt und Experiment — Work in Progress (WIP).**
+> Kein Produkt, keine Support- oder Stabilitätsversprechen; Architektur und API können sich ändern.
+> Der Entwicklungsprozess ist bewusst im Repo dokumentiert (Whitepapers `WORKING/WHITEPAPER/`,
+> Workpapers `WORKING/WORKPAPER/`).
+>
+> **Mitarbeit ist ausdrücklich erwünscht** — Feedback, Issues, Pull Requests willkommen
+> (siehe [Mitarbeit](#mithilfe)).
+>
+> **Lizenz:** MIT (siehe [Lizenz](#lizenz)).
+
 ## Status
 **Prototyp** (Vite + TypeScript). Kernpfade + **echter Agent-Loop**:
 AAMS(B)-Store (IndexedDB) · Task-Queue · **Modell-Pool** (Wächter resident + Planer on-demand,
@@ -66,9 +80,9 @@ src/
 > **⚠ Status: BEISPIEL & FORSCHUNG — kein verbindlicher Plan.**
 >
 > **Erster Deploy (2026-10-17) — ✅ LIVE:**
-> Live-URL: `https://ogerl-webgpu-agent.static.hf.space/`
-> (Space: `https://huggingface.co/spaces/ogerl/webgpu-agent`) ·
-> Quell-Stand: `https://github.com/ogerly/webgpu-agent` (GitHub = **nur Quelle**, kein Actions/Pages).
+> **Demo:** `https://huggingface.co/spaces/ogerl/webgpu-agent` (HuggingFace-Static-Space,
+> App läuft in der Space-Seite) ·
+> **Code:** `https://github.com/ogerly/webgpu-agent` (GitHub = **nur Code** — **kein Pages, kein Actions**).
 > `dist/` (6 MB) als HuggingFace-Static-Space hochgeladen; index.html + JS + CSS verifiziert (HTTP 200,
 > JS byte-identisch zum lokalen Build). Details: `WORKING/WORKPAPER/WP-2026-10-17-DEPLOY-webgpu-agent-deploy-optionen.md` §4.
 >
@@ -82,6 +96,20 @@ src/
 > heruntergeladen (Setup) · WebGPU-Pflicht: Chrome/Edge.
 >
 > Schnellstart (lokal): `npm run build` → `npx serve dist -l 8080` → Chrome/Edge mit WebGPU.
+
+## Mitarbeit
+
+- **Feedback/Ideen:** Issues auf GitHub — `https://github.com/ogerly/webgpu-agent`
+- **Code:** Fork → Branch → Pull Request; `npm run typecheck` + `npm run build` müssen grün bleiben.
+- **Kontext zuerst lesen:** `READ-AGENT.md` (Einordnung) · `idee.md` (Vision) ·
+  `WORKING/WHITEPAPER/` (Architektur-Wahrheit) · `WORKING/WORKPAPER/` (offene Aufgaben/Forschung).
+- **Tonalität:** ehrlich über den WIP-Status — keine fertigen „Features" versprechen.
+
+## Lizenz
+
+**MIT** — Details in [`LICENSE`](LICENSE).
+Hinweis: Die **Modell-Weights** (Qwen/Llama via WebLLM/MLC-Web-CDN) unterliegen ihren eigenen
+Lizenzen und sind nicht Teil dieses Repos.
 
 ## Nächste Schritte (→ Workpaper `next_steps` + `WH-002`)
 - [x] LLM-gestützte **Task-Zerlegung** (Planer) + echte **Ausführung** im Loop

@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "license": "MIT",
   "description": "Local-First WebGPU Agent (AAMS-nativ) — WH-001",
   "scripts": {
     "dev": "vite",
