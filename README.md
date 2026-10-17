@@ -63,13 +63,19 @@ src/
 
 ## Deploy (Beispiel & Forschung)
 
-> **⚠ Status: BEISPIEL & FORSCHUNG — kein verbindlicher Plan, nichts umgesetzt.**
+> **⚠ Status: BEISPIEL & FORSCHUNG — kein verbindlicher Plan.**
+>
+> **Erster Deploy (2026-10-17):** `https://ogerly.github.io/webgpu-agent/` (GitHub Pages, public) ·
+> Quell-Stand: `https://github.com/ogerly/webgpu-agent` · HuggingFace Space: ausstehend (Token prüfen).
 >
 > Der Agent läuft 100 % clientseitig: „Deploy" = **statische App + Modelle an die Browser
 > liefern** (kein Backend). Optionen (lokaler Server, statisches Hosting, PWA, selbst gehostete
 > Weights) und offene Forschungsfragen (Offline nach Setup, AAMS-B-Gedächtnis **pro
 > Browser/Origin**, WebGPU-Verfügbarkeit, Modell-Updates) stehen im Workpaper:
 > `WORKING/WORKPAPER/WP-2026-10-17-DEPLOY-webgpu-agent-deploy-optionen.md`
+>
+> Hinweis: Weights (≈ 945 MB Wächter / ≈ 2,3 GB Planer) werden beim ersten Laden vom CDN
+> heruntergeladen (Setup) · WebGPU-Pflicht: Chrome/Edge.
 >
 > Schnellstart (lokal): `npm run build` → `npx serve dist -l 8080` → Chrome/Edge mit WebGPU.
 

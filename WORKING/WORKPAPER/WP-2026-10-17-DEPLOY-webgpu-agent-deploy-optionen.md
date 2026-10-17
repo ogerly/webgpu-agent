@@ -1,7 +1,7 @@
 # WP-2026-10-17 — DEPLOY: Deploy-Optionen für den WebGPU-Agenten
 
 > **Typ:** Workpaper (Arbeitsdokument, **kein** Whitepaper)
-> **Status:** open · **⚠ BEISPIEL & FORSCHUNG** (Forschungsdokumentation — **kein verbindlicher Plan**, **nichts umgesetzt**)
+> **Status:** open · **⚠ BEISPIEL & FORSCHUNG** (Forschungsdokumentation — **kein verbindlicher Plan**) · **Erster Deploy (GitHub Pages) umgesetzt, 2026-10-17** (Abschnitt 4)
 > **Bezug:** WH-001 (local-first, keine Cloud) · WH-002 (≤ 4 GB VRAM) · WP-…-PROPOSAL (L2: offline nach Setup)
 > **Lebenszyklus:** Forschungsergebnisse → nur **strukturelle** Entscheidungen als Decision Record in WH-001. Danach → `closed/`.
 > **README:** als „Beispiel & Forschung" gekennzeichnet.
@@ -50,7 +50,23 @@ jede Option unten ist nur ein **Weg, die Dateien zum Browser zu bringen**.
 6. **Sicherheit/Hosting:** CSP-Header beim Hosting, keine Secrets in der App (Invariant),
    Web-Zugriff nur via V2-Brücke (untrusted-Daten-Regel aus WP-…-PROPOSAL §V2).
 
-## 4. Minimal-Beispiel (Schnellstart, lokal — für die Forschung nutzen)
+## 4. Erster Deploy (umgesetzt, 2026-10-17)
+
+> **Status: ERSTER DEPLOY LÄUFT** — Option „Statisches Hosting" (GitHub Pages).
+
+| Schritt | Ergebnis |
+|---------|----------|
+| Quell-Stand GitHub | `https://github.com/ogerly/webgpu-agent` (main, `.env` **nicht** committet — gitignored; Tokens nur in `.env`) |
+| Deploy-Workflow | `.github/workflows/deploy-pages.yml`: `npm ci` + `typecheck` + `build` → Publish `dist/` (keine Secrets im Bundle) |
+| **Live-URL** | **`https://ogerly.github.io/webgpu-agent/`** (Pages `build_type=workflow`, public) |
+| HuggingFace Space | **ausstehend:** HF-Token in `.env` wird mit **401 abgelehnt** (ungültig/abgelaufen) → Token neu generieren (hf.co/settings/tokens, Berechtigung **Write**) → Space `webgpu-agent` (Static) anlegen + `dist/` via LFS-API hochladen |
+
+**Bekannt / erwartet (Forschungsfragen 1–3):**
+- Weights (≈ 945 MB Wächter / ≈ 2,3 GB Planer) kommen **beim ersten Laden** vom CDN (Setup, L2 erlaubt) — danach: Browser-Cache.
+- **AAMS-B-Gedächtnis ist pro Browser + Origin** → auf `ogerly.github.io` andere Instanz als lokal (JSON-Export/Import = portable Kopie). Frage 2.
+- WebGPU-Pflicht: Chrome/Edge. Frage 3.
+
+## 5. Minimal-Beispiel (Schnellstart, lokal — für die Forschung nutzen)
 
 ```bash
 npm run build
@@ -60,14 +76,14 @@ npx serve dist -l 8080     # → http://localhost:8080 (Chrome/Edge mit WebGPU)
 Dann im UI: Wächter laden (erster Download ≈ 945 MB) → Planer laden (≈ 2,3 GB) → Aufgabe stellen.
 **Erwartet:** nachweisbarer Download-Fortschritt in den Rollen-Karten; danach: Task, Audit, Artefakt-Vorschau.
 
-## 5. Nicht-Ziele
+## 6. Nicht-Ziele
 
 - Kein Backend, keine Cloud-Funktionen, kein User-Management (WH-001 Invariant).
 - **Keine verbindliche Deploy-Entscheidung** (wäre ein Decision Record in WH-001 — erst nach Beantwortung der Fragen).
 - Keine PWA-Umsetzung, bevor Frage 1 (Offline/Weights-Cache) gemessen ist.
 - Keine 1:1-Nachbau-Anleitung für ein bestimmtes Hosting (Beispiele bleiben Beispiele).
 
-## 6. Verweise
+## 7. Verweise
 
 - `WORKING/WHITEPAPER/WH-001-ARCH-webgpu-single-agent-prototype.md` (local-first, Artefakte DR #5)
 - `WORKING/WORKPAPER/WP-2026-10-17-PROPOSAL-opfs-pyodide-extension-hermes-lite.md` (L1–L3, V1/V2)
